@@ -135,8 +135,51 @@ State Machine Function Definitions
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
-{
-
+{ 
+ static u32 u32Counter=0;
+ static u32 u32Counter2=0;/*Used for the time of the HEARTBEAT_ON()*/
+ static u32 u32Light_time=10;/*it is the time of HEARTBEAT_ON()*/
+ static bool bFlag=TRUE;/*FALSE is raise;TRUE is fall*/
+ 
+ u32Counter++;/*increase 1 per ms*/
+ u32Counter2++;/*increase 1 per ms*/
+   
+ if(u32Counter<=u32Light_time)
+   { 
+     HEARTBEAT_ON();
+   }
+ else
+      {
+        HEARTBEAT_OFF();  
+      }
+ 
+ if(u32Counter==u32Counter_limit_ms)/*u32Counter_limit_ms=10*/
+   {
+      u32Counter=0;
+   } 
+   
+ if(u32Counter2==100)
+   { 
+     u32Counter2=0;
+     
+     if(u32Light_time==10)
+       {
+          bFlag=TRUE;
+       }
+     else if(u32Light_time==0)
+          {
+            bFlag=FALSE;
+          }  
+     
+     if(bFlag)
+       {
+          u32Light_time--;
+       }
+     else 
+         {
+            u32Light_time++;
+         }  
+   }
 } /* end UserApp1SM_Idle() */
     
 
