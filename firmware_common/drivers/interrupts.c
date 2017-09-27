@@ -179,7 +179,8 @@ void PIOA_IrqHandler(void)
   u32 u32GPIOInterruptSources;
   u32 u32ButtonInterrupts;
   u32 u32CurrentButtonLocation;
-
+   
+  static u32 ISR_u32button;
   /* Grab a snapshot of the current PORTA status flags (clears all flags) */
   u32GPIOInterruptSources  = AT91C_BASE_PIOA->PIO_ISR;
 
@@ -191,7 +192,7 @@ void PIOA_IrqHandler(void)
   
   /* Check if any port A buttons interrupted */
   if(u32ButtonInterrupts)
-  {
+  {   ISR_u32button++;
     /* Parse through all the buttons to find those that have interrupted */
     for(u8 i = 0; i < TOTAL_BUTTONS; i++)
     {
@@ -235,7 +236,7 @@ void PIOB_IrqHandler(void)
   u32 u32GPIOInterruptSources;
   u32 u32ButtonInterrupts;
   u32 u32CurrentButtonLocation;
-
+  static u32 ISR_U32button=0;
   /* Grab a snapshot of the current PORTB status flags (clears all flags) */
   u32GPIOInterruptSources  = AT91C_BASE_PIOB->PIO_ISR;
 
@@ -247,7 +248,7 @@ void PIOB_IrqHandler(void)
   
   /* Check if any port B buttons interrupted */
   if(u32ButtonInterrupts)
-  {
+  {ISR_U32button++;
     /* Parse through all the buttons to find those that have interrupted */
     for(u8 i = 0; i < TOTAL_BUTTONS; i++)
     {
