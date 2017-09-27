@@ -136,6 +136,49 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+   static u32 u32Counter=0;
+ static u32 u32Two_second=0;/*2s change the frequency*/
+ static bool bFlag=TRUE;/*TRUE is down;FALSE is up*/
+ static bool bLightOn=FALSE;
+ static u32 u32Counter_limit_ms=512;
+ 
+ u32Counter++;/*increase 1 per ms*/
+ u32Two_second++;/*increase 1 per ms*/
+ 
+ if(u32Counter==u32Counter_limit_ms)
+   { 
+      u32Counter=0;
+      
+      if(bLightOn)
+        {
+          HEARTBEAT_OFF();
+          bLightOn=FALSE;
+        }
+      else 
+          {
+            HEARTBEAT_ON();
+            bLightOn=TRUE;
+          }
+    }
+   
+ if(u32Two_second==2000)/*If the time passes 2000 seconds, change the flicker speed*/
+   {
+      u32Two_second=0;
+      u32Counter=0;
+        
+      if(bFlag)
+        {
+          u32Counter_limit_ms=u32Counter_limit_ms/2;
+          if(u32Counter_limit_ms==16)
+          bFlag=FALSE;
+        }
+      else
+        {
+          u32Counter_limit_ms=u32Counter_limit_ms*2;
+          if(u32Counter_limit_ms==512)
+          bFlag=TRUE;
+        }
+   }
 
 } /* end UserApp1SM_Idle() */
     
