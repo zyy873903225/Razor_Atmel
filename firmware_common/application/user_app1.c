@@ -87,7 +87,18 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
+  
+  LedOff(LCD_RED);
+  LedOff(LCD_GREEN);
+  LedOff(LCD_BLUE);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,7 +147,90 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u8 u8Counter = 10;
+  static u8 u8LCD_Color = 0;  
+  static u8 u8CurrentLedIndex = 0; 
+  static u16 u16Interval = 500;
+  static LedNumberType aeCurrentLed[] = {WHITE,PURPLE,BLUE,CYAN,GREEN,YELLOW,ORANGE,RED};
+  static LedRateType aeLedCurrentLevel[] = {LED_PWM_100,LED_PWM_70,LED_PWM_50,LED_PWM_30,LED_PWM_20,LED_PWM_15,LED_PWM_10,LED_PWM_5};
+  static u16 u16LedInterval[] = {500,400,300,250,200,150,100,50};
+  
+  /*Change the brightness of the Leds*/
+  u8Counter--;
+  if(u8Counter == 0)
+  {
+    u8Counter=10;
+    LedOn((LedNumberType) aeCurrentLed[u8CurrentLedIndex]);
+    LedPWM((LedNumberType) aeCurrentLed[u8CurrentLedIndex],(LedRateType) aeLedCurrentLevel[u8CurrentLedIndex]);
+  }
+    
 
+  u16Interval--;
+  if(u16Interval == 0)
+  { 
+    LedOff((LedNumberType) aeCurrentLed[u8CurrentLedIndex]);
+    u8CurrentLedIndex++;
+    
+    
+    if(u8CurrentLedIndex == 8)
+    {
+      u8CurrentLedIndex=0;
+      
+      /*Change the color of LCD per cycle*/
+      switch(u8LCD_Color)
+      {
+        case 0: LedPWM(LCD_RED, LED_PWM_100);
+                LedPWM(LCD_GREEN, LED_PWM_0);
+                LedPWM(LCD_BLUE, LED_PWM_0);
+                break;
+           
+        case 1: LedPWM(LCD_RED, LED_PWM_0);
+                LedPWM(LCD_GREEN, LED_PWM_100);
+                LedPWM(LCD_BLUE, LED_PWM_0);
+                break;
+           
+        case 2: LedPWM(LCD_RED, LED_PWM_0);
+                LedPWM(LCD_GREEN, LED_PWM_0);
+                LedPWM(LCD_BLUE, LED_PWM_100);
+                break;
+           
+        case 3: LedPWM(LCD_RED, LED_PWM_100);
+                LedPWM(LCD_GREEN, LED_PWM_100);
+                LedPWM(LCD_BLUE, LED_PWM_0);
+                break;
+           
+        case 4: LedPWM(LCD_RED, LED_PWM_100);
+                LedPWM(LCD_GREEN, LED_PWM_0);
+                LedPWM(LCD_BLUE, LED_PWM_100);
+                break;
+           
+        case 5: LedPWM(LCD_RED, LED_PWM_0);
+                LedPWM(LCD_GREEN, LED_PWM_100);
+                LedPWM(LCD_BLUE, LED_PWM_100);
+                break;
+           
+        case 6: LedPWM(LCD_RED, LED_PWM_100);
+                LedPWM(LCD_GREEN, LED_PWM_100);
+                LedPWM(LCD_BLUE, LED_PWM_100);
+                break;
+           
+        case 7: LedOff(LCD_RED);
+                LedOff(LCD_GREEN);
+                LedOff(LCD_BLUE);
+                break;
+      }  
+  
+      u8LCD_Color++;
+      if(u8LCD_Color == 8)
+      {
+        u8LCD_Color=0;
+      }
+    }
+    
+    /*Change the Interval*/
+    u16Interval=u16LedInterval[u8CurrentLedIndex];
+
+  }
 } /* end UserApp1SM_Idle() */
     
 
