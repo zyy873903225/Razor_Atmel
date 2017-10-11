@@ -160,6 +160,9 @@ static void UserApp1SM_Idle(void)
             bLightOn=TRUE;
           }
     }
+ 
+ 
+ 
    
  if(u32Two_second==2000)/*If the time passes 2000 seconds, change the flicker speed*/
    {
