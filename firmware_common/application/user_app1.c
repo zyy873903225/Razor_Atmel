@@ -87,7 +87,14 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,6 +143,161 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u8 u8index=0;
+  static u8 u8PinLength=0;
+  static u8 u8result=0;/*Determine whether the password is entered correctly*/
+  static u8 aePinNum[10];/*Set the password*/
+  static u8 aePinPutin[10];/*Input the password*/
+  static bool bflag1=FALSE;/*The flag of the mode to change the password*/
+  static bool bflag2=FALSE;/*The flag of the mode of inputting the password*/
+  static bool bflag3=FALSE;/*The flag of comparing the input password to the set password*/
+  static bool bflag4=FALSE;/*The flag of the mode to inputting the password again*/
+
+/* Enter the mode to change the password*/
+  if( IsButtonHeld(BUTTON3,2000) )
+  {
+    ButtonAcknowledge(BUTTON3);
+    LedOn(GREEN);
+    LedOn(RED);
+    LedBlink(GREEN, LED_1HZ);
+    LedBlink(RED, LED_1HZ);
+    bflag1=TRUE;
+  }
+
+  if(bflag1)
+  { 
+    if( WasButtonPressed(BUTTON0) )
+    {
+      ButtonAcknowledge(BUTTON0);
+      aePinNum[u8PinLength]=0;
+      u8PinLength++;
+      LedOn(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+    }
+        
+    if( WasButtonPressed(BUTTON1) )
+    {
+      ButtonAcknowledge(BUTTON1);
+      aePinNum[u8PinLength]=1;
+      u8PinLength++;
+      LedOff(WHITE);
+      LedOn(PURPLE);
+      LedOff(BLUE);
+    }
+    
+    if( WasButtonPressed(BUTTON2) )
+    {
+      ButtonAcknowledge(BUTTON2);
+      aePinNum[u8PinLength]=2;
+      u8PinLength++;
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOn(BLUE);
+    }
+    
+    if( WasButtonPressed(BUTTON3) )
+    {
+      ButtonAcknowledge(BUTTON3);
+      LedOff(GREEN);
+      LedOff(RED);
+      bflag2=TRUE;
+      bflag1=FALSE;
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+    }
+  }
+  
+/*Enter the mode of inputting the password*/
+  if(bflag2)
+  {
+    bflag4=FALSE;
+    
+    if( WasButtonPressed(BUTTON0) )
+    {
+      ButtonAcknowledge(BUTTON0);
+      aePinPutin[u8index]=0;
+      u8index++;
+      LedOn(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+      LedOn(YELLOW);
+    }
+    
+    if( WasButtonPressed(BUTTON1) )
+    {
+      ButtonAcknowledge(BUTTON1);
+      aePinPutin[u8index]=1;
+      u8index++;
+      LedOff(WHITE);
+      LedOn(PURPLE);
+      LedOff(BLUE);
+      LedOn(YELLOW);
+    }
+    
+    if( WasButtonPressed(BUTTON2) )
+    {
+      ButtonAcknowledge(BUTTON2);
+      aePinPutin[u8index]=2;
+      u8index++;
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOn(BLUE);
+      LedOn(YELLOW);
+    }
+  }
+  
+  if(u8index==u8PinLength&&u8PinLength>0)
+  {
+    bflag2=FALSE;
+    bflag3=TRUE;
+    LedOff(WHITE);
+    LedOff(PURPLE);
+    LedOff(BLUE);
+    LedOff(RED);
+    LedOff(GREEN);
+  }
+  
+/*Compare the input password to the set password*/
+  if(bflag3)
+  {
+    LedOff(YELLOW);
+
+    if( WasButtonPressed(BUTTON3) )
+    {
+      ButtonAcknowledge(BUTTON3);
+      
+      for(u8index=0;u8index<u8PinLength;u8index++)
+      {
+        if(aePinNum[u8index]==aePinPutin[u8index])
+        {
+          u8result++;
+        }
+      }
+      
+      if(u8result==u8PinLength)
+      {
+        LedBlink(GREEN, LED_4HZ);
+        bflag4=TRUE;
+      }
+      else
+      {
+        LedBlink(RED, LED_4HZ);
+        bflag4=TRUE;
+
+      }
+    }
+  }
+  
+ /*Enter the mode of inputting the password again*/
+  if(bflag4)
+  {
+    bflag2=TRUE;
+    bflag3=FALSE;
+    u8result=0;
+    u8index=0;
+  }
 
 } /* end UserApp1SM_Idle() */
     
