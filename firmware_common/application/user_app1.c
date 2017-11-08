@@ -52,6 +52,8 @@ extern volatile u32 G_u32ApplicationFlags;             /* From main.c */
 extern volatile u32 G_u32SystemTime1ms;                /* From board-specific source file */
 extern volatile u32 G_u32SystemTime1s;                 /* From board-specific source file */
 
+extern u8 G_au8DebugScanfBuffer[];  /* From debug.c */
+extern u8 G_u8DebugScanfCharCount;  /* From debug.c */
 
 /***********************************************************************************************************************
 Global variable definitions with scope limited to this local application.
@@ -136,7 +138,68 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+  static u8 u8Counter1=0;
+  static u8 u8Counter2=0; 
+  static u8 u8Index=0;
+  static u8 u8Result=0; /*The number of letter*/
+  static u8 u8Exist=0;
+  static u8 u8Initial=0;
+  static u8 au8Input[2]= {0};/*Temporarily store the contents of the cache*/
+  static u8 au8Data[128]={0};/*store the contents of the cache*/
+  static u8 au8Name[]="Zhengyangyi";
+  static u8 au8Message0[]="\n\r***\n\r";
+  static u8 au8Message1[]="*";
+  static u8 au8Message2[]="\n\r****\n\r";
+  
+  
+  if(DebugScanf(au8Input)>0)
+  {  
+    /*Put the contents of the cache into an array*/
+    au8Data[u8Index]=au8Input[0];
+    u8Index++;   
+    
+    /*Compare the contents with the name*/
+    for(u8Counter1=u8Initial;u8Counter1<u8Index;u8Counter1++)
+    {
+      if(au8Data[u8Counter1]==au8Name[0])
+      {
+        for(u8Counter2=1;u8Counter2<sizeof(au8Name)+1;u8Counter2++)
+        {
+          if(au8Data[u8Counter1+u8Counter2]==au8Name[u8Counter2])
+          {
+            u8Result++;
+            if(u8Result==10)
+            {
+              u8Initial=sizeof(au8Name)+u8Counter1-1;
+              u8Result=0;
+              u8Exist++;
+              
+              if(u8Exist<10)
+              {
+                DebugPrintf(au8Message0);
+                DebugPrintf(au8Message1);
+                DebugPrintNumber(u8Exist);
+                DebugPrintf(au8Message1);
+                DebugPrintf(au8Message0);
+              }
+              else 
+              {
+                DebugPrintf(au8Message2);
+                DebugPrintf(au8Message1);
+                DebugPrintNumber(u8Exist);
+                DebugPrintf(au8Message1);
+                DebugPrintf(au8Message2);
+              }
+            }
+          }
+          else
+          {
+            u8Result=0;
+          }
+        }
+      }
+    }
+  }
 } /* end UserApp1SM_Idle() */
     
 
