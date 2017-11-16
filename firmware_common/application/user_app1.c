@@ -87,7 +87,9 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+   LCDCommand(LCD_CLEAR_CMD);
+   PWMAudioSetFrequency(BUZZER2, 1500);
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -135,8 +137,211 @@ State Machine Function Definitions
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
-{
-
+{ 
+  u8 au8Message1[]="0:Name  1:Input char";
+  u8 au8Message2[]="3:Back to menu";
+  u8 au8Message3[]="0:move right";
+  u8 au8Message4[]="1:move left";
+  
+  static u8 au8Dispaly_Name[13]="Zheng Yangyi";
+  static u8 au8Input_the_char[]="Input the char";
+  
+  static u8 i=0;
+  static u8 temp=0;
+  static u8 move=0;
+  static u8 u8Index=0;
+  static u32 u32Counter=0;
+  static u8 au8Input[2]= {0};/*Temporarily store the contents of the cache*/
+  static u8 au8Data[128]={0};/*store the contents of the cache*/
+  static u8 au8Data1[128]={0};/*put the contents from au8Data[]*/
+  static u8 au8Data2[128]={0};/*put the contents from au8Data[]*/
+  static bool bButton0=FALSE;
+  static bool bDispaly_Name_mode=FALSE;/*flag of mode 1*/
+  static bool bInput_mode=FALSE;/*flag of mode 2*/
+  static bool bBack_to_menu_mode=TRUE;/*flag of mode 3*/
+  static bool bstatic=TRUE;
+  static bool bdymaic=FALSE;
+  
+  
+  
+  /*Menu*/
+  if(bBack_to_menu_mode)
+  {
+    LCDMessage(LINE1_START_ADDR,au8Message1);
+    LCDMessage(LINE2_START_ADDR,au8Message2);
+    bBack_to_menu_mode=FALSE;
+  }
+  
+  /*mode1*/
+  if(!bButton0)
+  {
+    if(WasButtonPressed(BUTTON0))
+    {
+      ButtonAcknowledge(BUTTON0);
+      
+      LCDCommand(LCD_CLEAR_CMD);
+      LCDMessage(LINE1_START_ADDR,au8Message3);
+      LCDMessage(LINE2_START_ADDR,au8Message4);
+      
+      bButton0=TRUE;
+      bDispaly_Name_mode=TRUE;
+      bInput_mode=FALSE;
+      bBack_to_menu_mode=FALSE;
+      bdymaic=FALSE;
+    }
+  }
+  
+  if(bDispaly_Name_mode)
+  {    
+    
+    /*move right*/
+    if(IsButtonPressed(BUTTON1))
+    {
+      PWMAudioSetFrequency(BUZZER1, 500);
+      PWMAudioOn(BUZZER1);
+    }
+    else
+    {
+      PWMAudioOff(BUZZER1);
+    } 
+    
+    if(WasButtonPressed(BUTTON1))
+    {
+      ButtonAcknowledge(BUTTON1);
+      LCDCommand(LCD_CLEAR_CMD);
+      move++;
+      LCDMessage(LINE1_START_ADDR+move, au8Dispaly_Name); 
+    }
+    
+    
+    /*move left*/
+    if(bButton0)
+    {
+      if(IsButtonPressed(BUTTON0))
+      {
+        PWMAudioSetFrequency(BUZZER1, 1500);
+        PWMAudioOn(BUZZER1);
+      }
+      else
+      {
+        PWMAudioOff(BUZZER1);
+      } 
+      
+      if(WasButtonPressed(BUTTON0))
+      {
+        ButtonAcknowledge(BUTTON0);
+        LCDCommand(LCD_CLEAR_CMD);
+        move--;
+        LCDMessage(LINE1_START_ADDR+move, au8Dispaly_Name);
+      }
+    }
+    
+    
+    /*limit to not over move and alarm*/   
+    if(move+sizeof(au8Dispaly_Name)>21)
+    {
+      PWMAudioSetFrequency(BUZZER2, 5500);
+      PWMAudioOn(BUZZER2);
+    }
+    else
+    {
+      PWMAudioOff(BUZZER2);
+    }
+  }
+  
+  /*mode 2*/
+  if(WasButtonPressed(BUTTON1))
+  {
+    ButtonAcknowledge(BUTTON1);
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8Input_the_char); 
+    
+    bDispaly_Name_mode=FALSE;
+    bInput_mode=TRUE;
+    bBack_to_menu_mode=FALSE;
+  }
+  
+  
+  if(bInput_mode)
+  {    
+    /*Put the contents of the cache into an array*/
+    if(DebugScanf(au8Input)>0)
+    {  
+      au8Data[u8Index]=au8Input[0];
+      if(u8Index<20)
+      {
+        au8Data1[u8Index]=au8Input[0];
+        u8Index++;   
+      }
+      else
+      {
+        au8Data2[u8Index-20]=au8Input[0];
+        u8Index++;   
+      }
+      
+      if(u8Index==40)
+      {
+        bstatic=FALSE;
+        bdymaic=TRUE;
+        bInput_mode=FALSE;
+      }
+      
+      /*display what you input*/
+      if(bstatic)
+      {
+        LCDCommand(LCD_CLEAR_CMD);           
+        LCDMessage(LINE1_START_ADDR,au8Data1);                  
+        LCDMessage(LINE2_START_ADDR,au8Data2);              
+      }
+    }
+  }
+  
+  /*make contents dymaic*/
+  if(bdymaic)
+  {
+    u32Counter++;
+    
+    if(u32Counter==500)
+    {
+      u32Counter=0;
+      
+      au8Data[39]=au8Data[0];
+      
+      for(i=0;i<39;i++)
+      {
+        temp=au8Data[i+1];
+        au8Data[i]=temp;
+      }
+      
+      for(i=0;i<20;i++)
+      {
+        au8Data1[i]=au8Data[i];
+      }
+      
+      for(i=20;i<40;i++)
+      {
+        au8Data2[i-20]=au8Data[i];
+      }
+      
+      LCDCommand(LCD_CLEAR_CMD);           
+      LCDMessage(LINE1_START_ADDR,au8Data1);                  
+      LCDMessage(LINE2_START_ADDR,au8Data2);              
+    }
+  }
+  
+  /*mode 3*/
+  if(WasButtonPressed(BUTTON3))
+  {
+    ButtonAcknowledge(BUTTON3);
+    LCDCommand(LCD_CLEAR_CMD);
+    
+    bDispaly_Name_mode=FALSE;
+    bInput_mode=FALSE;
+    bBack_to_menu_mode=TRUE;
+    bdymaic=FALSE;
+    bButton0=FALSE;
+    PWMAudioOff(BUZZER2);
+  } 
 } /* end UserApp1SM_Idle() */
     
 
