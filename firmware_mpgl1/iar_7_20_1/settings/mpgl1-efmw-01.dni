@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-1306393941
+Checksum=-1462737396
 [JLinkDriver]
 CStepIntDis=_ 0
 WatchCond=_ 0
@@ -25,15 +25,6 @@ StopOnThrow=_ 0
 ShowArgs=0
 [Disassembly]
 MixedMode=1
-[InterruptLog]
-LogEnabled=0
-SumEnabled=0
-GraphEnabled=0
-ShowTimeLog=1
-ShowTimeSum=1
-SumSortOrder=0
-[Interrupts]
-Enabled=1
 [MemoryMap]
 Enabled=0
 Base=0
@@ -43,13 +34,44 @@ UnspecRange=1
 ActionState=1
 [CodeCoverage]
 Enabled=_ 0
+[InterruptLog]
+LogEnabled=0
+SumEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+ShowTimeSum=1
+SumSortOrder=0
+[DataLog]
+LogEnabled=0
+SumEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+ShowTimeSum=1
+[Interrupts]
+Enabled=1
+[MemConfig]
+Base=1
+Manual=0
+Ddf=1
+TypeViol=0
+Stop=1
+[Simulator]
+Freq=10000000
+MultiCoreRunAll=1
 [struct_types]
 Fmt0=LedCommandType-bOn	3	0
 Fmt1=LedCommandType-eCurrentRate	3	0
 [array_types]
-Fmt0=u8[7]	4	0
+Fmt0=u8[2]	3	0
+Fmt1=u8[7]	4	0
 [watch_formats]
-Fmt0={W}2:Msg_u8QueuedMessageCount	3	0
+Fmt0={W}1:b	3	0
+Fmt1={W}1:c	3	0
+Fmt2={W}1:i2	3	0
+Fmt3={W}1:i3	3	0
+Fmt4={W}1:sizeof(aeUserList)	3	0
+Fmt5={W}1:u8Index	3	0
+Fmt6={W}2:Msg_u8QueuedMessageCount	3	0
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
@@ -61,7 +83,7 @@ LogFile=_ ""
 Enabled=0
 [DriverProfiling]
 Enabled=0
-Mode=1
+Mode=0
 Graph=0
 Symbiont=0
 Exclusions=
