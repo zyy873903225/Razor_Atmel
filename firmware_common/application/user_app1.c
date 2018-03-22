@@ -52,6 +52,8 @@ extern volatile u32 G_u32ApplicationFlags;             /* From main.c */
 extern volatile u32 G_u32SystemTime1ms;                /* From board-specific source file */
 extern volatile u32 G_u32SystemTime1s;                 /* From board-specific source file */
 
+extern u8 G_au8DebugScanfBuffer[];  /* From debug.c */
+extern u8 G_u8DebugScanfCharCount;  /* From debug.c */
 
 /***********************************************************************************************************************
 Global variable definitions with scope limited to this local application.
@@ -99,6 +101,19 @@ void UserApp1Initialize(void)
     UserApp1_StateMachine = UserApp1SM_Error;
   }
 
+  LedOff(RED);
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(ORANGE);
+  LedOff(GREEN);
+  LedOff(CYAN);
+  LedOff(BLUE);
+  LedOff(YELLOW);
+  
+  PWMAudioSetFrequency(BUZZER1, 500);
+  PWMAudioSetFrequency(BUZZER2, 2000);
+  
+  LCDCommand(LCD_CLEAR_CMD);
 } /* end UserApp1Initialize() */
 
   
@@ -136,7 +151,136 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+  u8 au8Message_state1[]="Entering state1\n\n\r";
+  
+  u8 au8Message_state2[]="Entering state2\n\n\r";
+  
+  u8 au8Message_error[]="Error! Press Button1 or Button2\n\n\r";
+  u8 au8Message_error1[]="Error!   Press \n\n\r";
+  u8 au8Message_error2[]="Button1 or Button2\n\n\r";
+  
+  static u32 u32time_BUZZER=0; //timer
+  static bool bstart_BUZZER=FALSE; //100ms 200Hz tone every second for BUZZER1
+  
+  //STATE 1
+  if( WasButtonPressed(BUTTON1) || G_au8DebugScanfBuffer[0]=='1' )
+  {
+    //about Debug
+    DebugScanf(G_au8DebugScanfBuffer);
+    DebugLineFeed();
+    DebugPrintf(au8Message_state1);
+    
+    //about Button
+    ButtonAcknowledge(BUTTON1);
+    
+    //about Buzzer
+    PWMAudioOff(BUZZER1);
+    PWMAudioOff(BUZZER2);
+    bstart_BUZZER=FALSE;
+    
+    //about LCD
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8Message_state1);
+    
+    //about Leds
+    LedOff(GREEN);
+    LedOff(YELLOW);
+    LedOff(ORANGE);
+    LedOff(RED);
+    
+    LedOn(WHITE);
+    LedOn(PURPLE);
+    LedOn(BLUE);
+    LedOn(CYAN);
+    
+  }
+  
+  //STATE 2
+  if( WasButtonPressed(BUTTON2) || G_au8DebugScanfBuffer[0]=='2')
+  {
+    //about Debug
+    DebugScanf(G_au8DebugScanfBuffer);
+    DebugLineFeed();
+    DebugPrintf(au8Message_state2);
+    
+    //about Button
+    ButtonAcknowledge(BUTTON2);
+    
+    //about Buzzer
+    PWMAudioOn(BUZZER1);
+    PWMAudioOff(BUZZER2);
+    u32time_BUZZER=0;
+    bstart_BUZZER=TRUE;
+    
+    //about LCD
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8Message_state2);
+    
+    //about Leds
+    LedOff(WHITE);
+    LedOff(PURPLE);
+    LedOff(BLUE);
+    LedOff(CYAN);
+    
+    LedOn(GREEN);
+    LedBlink(GREEN, LED_1HZ);
+    LedOn(YELLOW);
+    LedBlink(YELLOW, LED_2HZ);
+    LedOn(ORANGE);
+    LedBlink(ORANGE, LED_4HZ);
+    LedOn(RED);
+    LedBlink(RED, LED_8HZ);
+  }
+  
+  //ERROR Alarm
+  if( WasButtonPressed(BUTTON0) || WasButtonPressed(BUTTON3) || ( DebugScanf(G_au8DebugScanfBuffer)>0 && ( G_au8DebugScanfBuffer[0]!='1' || G_au8DebugScanfBuffer[0]!='2' ) ) )
+  {
+    //about Debug
+    DebugScanf(G_au8DebugScanfBuffer);
+    DebugLineFeed();
+    DebugPrintf(au8Message_error);
+    
+    //about Button
+    ButtonAcknowledge(BUTTON0);
+    ButtonAcknowledge(BUTTON3);
+    
+    //about Buzzer
+    PWMAudioOff(BUZZER1);
+    PWMAudioOn(BUZZER2);//alarm
+    bstart_BUZZER=FALSE;
+    
+    //about LCD
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8Message_error1);
+    LCDMessage(LINE2_START_ADDR, au8Message_error2);
+    
+    //about Leds
+    LedOff(RED);
+    LedOff(WHITE);
+    LedOff(PURPLE);
+    LedOff(ORANGE);
+    LedOff(GREEN);
+    LedOff(CYAN);
+    LedOff(BLUE);
+    LedOff(YELLOW);
+  }
+  
+  if( bstart_BUZZER )
+  {
+    u32time_BUZZER++;
+    
+    if( u32time_BUZZER == 100 )
+    {
+      PWMAudioOff(BUZZER1);
+    }
+    
+    if( u32time_BUZZER == 1000 )
+    {
+      u32time_BUZZER=0;
+      PWMAudioOn(BUZZER1);
+    }
+    
+  }
 } /* end UserApp1SM_Idle() */
     
 
