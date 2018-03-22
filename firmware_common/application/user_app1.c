@@ -114,6 +114,7 @@ void UserApp1Initialize(void)
   PWMAudioSetFrequency(BUZZER2, 2000);
   
   LCDCommand(LCD_CLEAR_CMD);
+  
 } /* end UserApp1Initialize() */
 
   
@@ -193,6 +194,9 @@ static void UserApp1SM_Idle(void)
     LedOn(BLUE);
     LedOn(CYAN);
     
+    LedPWM(LCD_RED, LED_PWM_100);
+    LedPWM(LCD_GREEN, LED_PWM_0);
+    LedPWM(LCD_BLUE, LED_PWM_100);
   }
   
   //STATE 2
@@ -230,6 +234,10 @@ static void UserApp1SM_Idle(void)
     LedBlink(ORANGE, LED_4HZ);
     LedOn(RED);
     LedBlink(RED, LED_8HZ);
+    
+    LedPWM(LCD_RED, LED_PWM_100);
+    LedPWM(LCD_GREEN, LED_PWM_30);
+    LedPWM(LCD_BLUE, LED_PWM_0);
   }
   
   //ERROR Alarm
@@ -263,6 +271,10 @@ static void UserApp1SM_Idle(void)
     LedOff(CYAN);
     LedOff(BLUE);
     LedOff(YELLOW);
+    
+    LedPWM(LCD_RED, LED_PWM_100);
+    LedPWM(LCD_GREEN, LED_PWM_0);
+    LedPWM(LCD_BLUE, LED_PWM_0);
   }
   
   if( bstart_BUZZER )
