@@ -60,6 +60,20 @@ Variable names shall start with "UserApp1_" and be declared as static.
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 //static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
 
+#define ANT_CHANNEL_TYPE_USERAPP        CHANNEL_TYPE_MASTER   // Device is a MASTER
+#define ANT_CHANNEL_USERAPP             ANT_CHANNEL_0         // Channel 0 - 7
+#define ANT_CHANNEL_PERIOD_LO_USERAPP   (u8)0x00              // LO; 0x0001 - 0x7fff
+#define ANT_CHANNEL_PERIOD_HI_USERAPP   (u8)0x20              // HI; 0x0001 - 0x7fff
+#define ANT_DEVICEID_LO_USERAPP         (u8)0x34              // Device # Low byte
+#define ANT_DEVICEID_HI_USERAPP         (u8)0x12              // Device # High byte
+#define ANT_DEVICE_TYPE_USERAPP         (u8)1                 // 1 - 255
+#define ANT_TRANSMISSION_TYPE_USERAPP   (u8)1                 // 1-127; MSB is pairing
+#define ANT_FREQUENCY_USERAPP           (u8)50                // 2400MHz + 0 - 99 MHz
+#define ANT_TX_POWER_USERAPP            RADIO_TX_POWER_4DBM   // Max tx power
+  
+static AntAssignChannelInfoType UserApp1_sChannelInfo  
+  
+  
 
 /**********************************************************************************************************************
 Function Definitions
@@ -87,6 +101,18 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
+  UserApp1_sChannelInfo.AntChannel          = ANT_CHANNEL_USERAPP;
+  UserApp1_sChannelInfo.AntChannelType      = ANT_CHANNEL_TYPE_USERAPP;
+  UserApp1_sChannelInfo.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
+  UserApp1_sChannelInfo.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+ 
+  UserApp1_sChannelInfo.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
+  UserApp1_sChannelInfo.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
+  UserApp1_sChannelInfo.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
+  UserApp1_sChannelInfo.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
+  UserApp1_sChannelInfo.AntFrequency        = ANT_FREQUENCY_USERAPP;
+  UserApp1_sChannelInfo.AntTxPower          = ANT_TX_POWER_USERAPP;
+  
  
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -98,7 +124,7 @@ void UserApp1Initialize(void)
     /* The task isn't properly initialized, so shut it down and don't run */
     UserApp1_StateMachine = UserApp1SM_Error;
   }
-
+  
 } /* end UserApp1Initialize() */
 
   
