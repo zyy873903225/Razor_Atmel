@@ -198,38 +198,12 @@ static void UserApp1SM_AntChannelAssign()
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  /*Channel ID : Device # 29061 */
   static u8 au8TestMessage[] = {0x5B, 0, 0, 0, 0xFF, 0, 0, 0};
   static u8 au8Total_number[]="TOTAL:000000";
   static u8 au8Failed_number[]="FAIL:000000";
   static u32 u32Counter=0;
   u8 au8DataContent[] = "xxxxxxxxxxxxxxxx";
-  
-  /* Check all the buttons and update au8TestMessage according to the button state */ 
-  /*au8TestMessage[0] = 0x00;
-  if( IsButtonPressed(BUTTON0) )
-  {
-    au8TestMessage[0] = 0xff;
-  }
-  
-  au8TestMessage[1] = 0x00;
-  if( IsButtonPressed(BUTTON1) )
-  {
-    au8TestMessage[1] = 0xff;
-  }
-
-#ifdef EIE1
-  au8TestMessage[2] = 0x00;
-  if( IsButtonPressed(BUTTON2) )
-  {
-    au8TestMessage[2] = 0xff;
-  }
-
-  au8TestMessage[3] = 0x00;
-  if( IsButtonPressed(BUTTON3) )
-  {
-    au8TestMessage[3] = 0xff;
-  }
-#endif /* EIE1 */
   
   if( AntReadAppMessageBuffer() )
   {
