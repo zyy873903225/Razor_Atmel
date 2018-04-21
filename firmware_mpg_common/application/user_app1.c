@@ -100,8 +100,10 @@ void UserApp1Initialize(void)
   u8 au8WelcomeMessage[] = "Hide and Go Seek!";
   u8 au8Instructions[] = "Press B0 to Start!";
   AntAssignChannelInfoType sAntSetupData;
+  static AntAssignChannelInfoType UserApp1_sMasterChannel;
+  static AntAssignChannelInfoType UserApp1_sSlaveChannel;
   
-  /* Clear screen and place start messages */
+  /* Clear screen and place welcome messages */
 #ifdef EIE1
   LCDCommand(LCD_CLEAR_CMD);
   LCDMessage(LINE1_START_ADDR, au8WelcomeMessage); 
@@ -121,28 +123,46 @@ void UserApp1Initialize(void)
   /* Start with LED0 in RED state = channel is not configured */
   LedOn(RED0);
 #endif /* MPG2 */
+   
+  /* Configure ANT for this Master and Slave */
+  /* Master (Channel 0) */
+  UserApp1_sMasterChannel.AntChannel          = ANT_CHANNEL_0;
+  UserApp1_sMasterChannel.AntChannelType      = CHANNEL_TYPE_MASTER;
+  UserApp1_sMasterChannel.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+  UserApp1_sMasterChannel.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
   
- /* Configure ANT for this application */
-  sAntSetupData.AntChannel          = ANT_CHANNEL_USERAPP;
-  sAntSetupData.AntChannelType      = ANT_CHANNEL_TYPE_USERAPP;
-  sAntSetupData.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
-  sAntSetupData.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+  UserApp1_sMasterChannel.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
+  UserApp1_sMasterChannel.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;;
+  UserApp1_sMasterChannel.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
+  UserApp1_sMasterChannel.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
   
-  sAntSetupData.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
-  sAntSetupData.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
-  sAntSetupData.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
-  sAntSetupData.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
-  sAntSetupData.AntFrequency        = ANT_FREQUENCY_USERAPP;
-  sAntSetupData.AntTxPower          = ANT_TX_POWER_USERAPP;
-
-  sAntSetupData.AntNetwork = ANT_NETWORK_DEFAULT;
+  UserApp1_sMasterChannel.AntFrequency        = ANT_FREQUENCY_USERAPP;
+  UserApp1_sMasterChannel.AntTxPower          = ANT_TX_POWER_USERAPP;
+  UserApp1_sMasterChannel.AntNetwork          = ANT_NETWORK_DEFAULT;
+  
+  /* Slave (Channel 1) */
+  UserApp1_sSlaveChannel.AntChannel           = ANT_CHANNEL_1;
+  UserApp1_sSlaveChannel.AntChannelType       = CHANNEL_TYPE_SLAVE;
+  UserApp1_sSlaveChannel.AntChannelPeriodHi   = ANT_CHANNEL_PERIOD_HI_USERAPP;
+  UserApp1_sSlaveChannel.AntChannelPeriodLo   = ANT_CHANNEL_PERIOD_LO_USERAPP;
+  
+  UserApp1_sSlaveChannel.AntDeviceIdHi        = ANT_DEVICEID_HI_USERAPP;
+  UserApp1_sSlaveChannel.AntDeviceIdLo        = ANT_DEVICEID_LO_USERAPP;
+  UserApp1_sSlaveChannel.AntDeviceType        = ANT_DEVICE_TYPE_USERAPP;
+  UserApp1_sSlaveChannel.AntTransmissionType  = ANT_TRANSMISSION_TYPE_USERAPP;
+  
+  UserApp1_sSlaveChannel.AntFrequency         = ANT_FREQUENCY_USERAPP;
+  UserApp1_sSlaveChannel.AntTxPower           = ANT_TX_POWER_USERAPP;
+  UserApp1_sSlaveChannel.AntNetwork           = ANT_NETWORK_DEFAULT;
+  
   for(u8 i = 0; i < ANT_NETWORK_NUMBER_BYTES; i++)
   {
-    sAntSetupData.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+    UserApp1_sMasterChannel.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+    UserApp1_sSlaveChannel.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
   }
-    
+ 
   /* If good initialization, set state to Idle */
-  if( AntAssignChannel(&sAntSetupData) )
+  if( AntAssignChannel(&UserApp1_sMasterChannel) && AntAssignChannel(&UserApp1_sSlaveChannel ) )
   {
     /* Channel is configured, so change LED to yellow */
 #ifdef EIE1
@@ -207,8 +227,8 @@ State Machine Function Definitions
 /* Wait for the ANT channel assignment to finish */
 static void UserApp1SM_WaitChannelAssign(void)
 {
-  /* Check if the channel assignment is complete */
-  if(AntRadioStatusChannel(ANT_CHANNEL_USERAPP) == ANT_CONFIGURED)
+  /* Check if all the channel assignment is complete */
+  if( ( AntRadioStatusChannel(ANT_CHANNEL_0) == ANT_CONFIGURED) && (AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_CONFIGURED) )
   {
     UserApp1_StateMachine = UserApp1SM_Idle;
   }
@@ -227,7 +247,9 @@ static void UserApp1SM_WaitChannelAssign(void)
 /* Wait for a message to be queued */
 static void UserApp1SM_Idle(void)
 {
-  u8 auStartMessage1[] = "Seeker!";
+  u8 auSeekerMessage[] = "Seeker!";
+  u8 auHideMessage[] = "Hide!";
+  
   
   /* Look for BUTTON 0 to open channel */
   if(WasButtonPressed(BUTTON0))
@@ -241,12 +263,17 @@ static void UserApp1SM_Idle(void)
     /* Set timer and advance states */
     UserApp1_u32Timeout = G_u32SystemTime1ms;
     UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
-     
-    /*Display "Seeker!"*/
-    LCDCommand( LCD_CLEAR_CMD );
-    LCDMessage(LINE1_START_ADDR, auStartMessage1);
-  }
     
+    /*Display "Seeker!" or "Hide!"*/
+    LCDCommand( LCD_CLEAR_CMD );
+    if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_0 ) 
+    {
+      LCDMessage(LINE1_START_ADDR, auHideMessage);
+    }
+    else if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 ) 
+      LCDMessage(LINE1_START_ADDR, auSeekerMessage);
+  }
+  
 } /* end UserApp1SM_Idle() */
      
 
@@ -293,8 +320,11 @@ static void UserApp1SM_WaitChannelOpen(void)
 /* Channel is open, so monitor data */
 static void UserApp1SM_ChannelOpen(void)
 {
-  u8 auStartMessage2[] = "Ready or not!";
-  u8 auStartMessage3[] = "Here I come!";
+  u8 auSeekerMessage1[] = "Ready or not!";
+  u8 auSeekerMessage2[] = "Here I come!";
+  u8 auSeekerSucceed[] = "Found you!";
+  u8 auHideFound[] = "You found me!";
+  
   static u16 u16_10s_countdown = 0;
   static bool bcountdown = TRUE;
    
@@ -304,20 +334,137 @@ static void UserApp1SM_ChannelOpen(void)
     u16_10s_countdown++;
     if( u16_10s_countdown == 10000 )
     {
+      /* set the countdown to 0 */
       u16_10s_countdown = 0;
       bcountdown = FALSE;
-      
-      LCDCommand( LCD_CLEAR_CMD );
-      LCDMessage( LINE1_START_ADDR, auStartMessage2 );
-      LCDMessage( LINE2_START_ADDR, auStartMessage3 );
+      if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 )
+      {
+        /* Update LCD to starting screen. */
+        LCDCommand( LCD_CLEAR_CMD );
+        LCDMessage( LINE1_START_ADDR, auSeekerMessage1 );
+        LCDMessage( LINE2_START_ADDR, auSeekerMessage2 );
+      }
     }
   }
   
-  if( !bcountdown )
+  if( !bcountdown && ( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 )  )
   {
-    
-  }
+    if( G_sAntApiCurrentMessageExtData.s8RSSI > -50 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
+    {
+      /*change LED */
+      LedOn(WHITE);
+      LedOn(PURPLE);
+      LedOn(BLUE);
+      LedOn(CYAN);
+      LedOn(GREEN);
+      LedOn(YELLOW);
+      LedOn(ORANGE);
+      LedOn(RED);
       
+      /* Update LCD to starting screen. */
+      LCDCommand( LCD_CLEAR_CMD );
+      if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 )
+      { 
+        LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
+      }
+      else if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_0 )
+      {
+        LCDMessage( LINE1_START_ADDR, auHideFound );
+      }
+    }
+    
+    if( G_sAntApiCurrentMessageExtData.s8RSSI > -60 && G_sAntApiCurrentMessageExtData.s8RSSI <= -50 )
+    {    
+      /*change LED */
+      LedOn(WHITE);
+      LedOn(PURPLE);
+      LedOn(BLUE);
+      LedOn(CYAN);
+      LedOn(GREEN);
+      LedOn(YELLOW);
+      LedOn(ORANGE);
+      LedOff(RED);
+    }
+    
+    if( G_sAntApiCurrentMessageExtData.s8RSSI > -70 && G_sAntApiCurrentMessageExtData.s8RSSI <= -60 )
+    {
+      /*change LED */
+      LedOn(WHITE);
+      LedOn(PURPLE);
+      LedOn(BLUE);
+      LedOn(CYAN);
+      LedOn(GREEN);
+      LedOn(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+    }
+    
+    if( G_sAntApiCurrentMessageExtData.s8RSSI > -80 && G_sAntApiCurrentMessageExtData.s8RSSI <= -70 )
+    {
+      /*change LED */
+      LedOn(WHITE);
+      LedOn(PURPLE);
+      LedOn(BLUE);
+      LedOn(CYAN);
+      LedOn(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+    }
+    
+    if( G_sAntApiCurrentMessageExtData.s8RSSI > -90 && G_sAntApiCurrentMessageExtData.s8RSSI <= -80 )
+    {
+      /*change LED */
+      LedOn(WHITE);
+      LedOn(PURPLE);
+      LedOn(BLUE);
+      LedOn(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+    }
+    
+    if( G_sAntApiCurrentMessageExtData.s8RSSI > -100 && G_sAntApiCurrentMessageExtData.s8RSSI <= -90 )
+    {
+      /*change LED */
+      LedOn(WHITE);
+      LedOn(PURPLE);
+      LedOn(BLUE);
+      LedOff(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+    }
+    
+    if( G_sAntApiCurrentMessageExtData.s8RSSI > -110 && G_sAntApiCurrentMessageExtData.s8RSSI <= -100 )
+    {
+      /*change LED */
+      LedOff(WHITE);
+      LedOn(PURPLE);
+      LedOff(BLUE);
+      LedOff(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+    }
+    
+    if(G_sAntApiCurrentMessageExtData.s8RSSI <= -110 )
+    {
+      /*change LED */
+      LedOn(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+      LedOff(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+    }
+  }
+  
 } /* end UserApp1SM_ChannelOpen() */
 
 
