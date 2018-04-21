@@ -31,8 +31,8 @@ Constants / Definitions
 /* Required constants for ANT channel configuration */
 #define ANT_CHANNEL_USERAPP             ANT_CHANNEL_1         /* Channel 0 - 7 */
 #define ANT_CHANNEL_TYPE_USERAPP        CHANNEL_TYPE_SLAVE    /* ANT SLAVE */
-#define ANT_DEVICEID_LO_USERAPP         (u8)0xD8                 /* Low byte of two-byte Device # */
-#define ANT_DEVICEID_HI_USERAPP         (u8)0x1E                 /* High byte of two-byte Device # */
+#define ANT_DEVICEID_LO_USERAPP         (u8)0x85                 /* Low byte of two-byte Device # */
+#define ANT_DEVICEID_HI_USERAPP         (u8)0x71                 /* High byte of two-byte Device # */
 #define ANT_DEVICE_TYPE_USERAPP         (u8)0                 /* 1 - 255 */
 #define ANT_TRANSMISSION_TYPE_USERAPP   (u8)0                 /* 1-127 (MSB is pairing bit) */
 #define ANT_CHANNEL_PERIOD_LO_USERAPP   (u8)0x00              /* Low byte of two-byte channel period 0x0001 - 0x7fff */
@@ -70,10 +70,12 @@ void UserApp1RunActiveState(void);
 /***********************************************************************************************************************
 State Machine Declarations
 ***********************************************************************************************************************/
-static void UserApp1SM_WaitChannelAssign(void);
+static void UserApp1SM_WaitMasterChannelAssign(void);
+static void UserApp1SM_WaitSlaveChannelAssign(void);
 static void UserApp1SM_Idle(void);    
 static void UserApp1SM_WaitChannelOpen(void);
-static void UserApp1SM_ChannelOpen(void);
+static void UserApp1SM_MasterChannelOpen(void);
+static void UserApp1SM_SlaveChannelOpen(void);
 static void UserApp1SM_WaitChannelClose(void);
 
 static void UserApp1SM_Error(void);         

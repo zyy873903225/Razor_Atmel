@@ -69,7 +69,9 @@ static u32 UserApp1_u32TickMsgCount = 0;             /* Counts the number of ANT
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
 
-
+static AntAssignChannelInfoType UserApp1_sMasterChannel;
+static AntAssignChannelInfoType UserApp1_sSlaveChannel;
+  
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -99,9 +101,6 @@ void UserApp1Initialize(void)
 {
   u8 au8WelcomeMessage[] = "Hide and Go Seek!";
   u8 au8Instructions[] = "Press B0 to Start!";
-  AntAssignChannelInfoType sAntSetupData;
-  static AntAssignChannelInfoType UserApp1_sMasterChannel;
-  static AntAssignChannelInfoType UserApp1_sSlaveChannel;
   
   /* Clear screen and place welcome messages */
 #ifdef EIE1
@@ -162,7 +161,8 @@ void UserApp1Initialize(void)
   }
  
   /* If good initialization, set state to Idle */
-  if( AntAssignChannel(&UserApp1_sMasterChannel) && AntAssignChannel(&UserApp1_sSlaveChannel ) )
+ 
+ if( AntAssignChannel(&UserApp1_sMasterChannel) )
   {
     /* Channel is configured, so change LED to yellow */
 #ifdef EIE1
@@ -174,7 +174,7 @@ void UserApp1Initialize(void)
     LedOn(GREEN0);
 #endif /* MPG2 */
     
-    UserApp1_StateMachine = UserApp1SM_WaitChannelAssign;
+    UserApp1_StateMachine = UserApp1SM_WaitMasterChannelAssign;
   }
   else
   {
@@ -186,10 +186,10 @@ void UserApp1Initialize(void)
 #ifdef MPG2
     LedBlink(RED0, LED_4HZ);
 #endif /* MPG2 */
-
+    
     UserApp1_StateMachine = UserApp1SM_Error;
   }
-
+  
 } /* end UserApp1Initialize() */
 
 
@@ -225,10 +225,56 @@ State Machine Function Definitions
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for the ANT channel assignment to finish */
-static void UserApp1SM_WaitChannelAssign(void)
+static void UserApp1SM_WaitMasterChannelAssign(void)
 {
   /* Check if all the channel assignment is complete */
-  if( ( AntRadioStatusChannel(ANT_CHANNEL_0) == ANT_CONFIGURED) && (AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_CONFIGURED) )
+  if( ( AntRadioStatusChannel(ANT_CHANNEL_0) == ANT_CONFIGURED ) )
+  {
+    if( AntAssignChannel(&UserApp1_sSlaveChannel) )
+    {
+      /* Channel is configured, so change LED to yellow */
+#ifdef EIE1
+      LedOff(RED);
+      LedOn(YELLOW);
+#endif /* EIE1 */
+      
+#ifdef MPG2
+      LedOn(GREEN0);
+#endif /* MPG2 */
+      
+      UserApp1_StateMachine = UserApp1SM_WaitSlaveChannelAssign;
+    }
+    else
+    {
+      /* The task isn't properly initialized, so shut it down and don't run */
+#ifdef EIE1
+      LedBlink(RED, LED_4HZ);
+#endif /* EIE1 */
+      
+#ifdef MPG2
+      LedBlink(RED0, LED_4HZ);
+#endif /* MPG2 */
+      
+      UserApp1_StateMachine = UserApp1SM_Error;
+    }
+  }
+  
+  /* Monitor for timeout */
+  if( IsTimeUp(&UserApp1_u32Timeout, 3000) )
+  {
+    DebugPrintf("\n\r***Channel assignment timeout***\n\n\r");
+    UserApp1_StateMachine = UserApp1SM_Error;
+  }
+  
+} /* end UserApp1SM_WaitMasterChannelAssign() */
+
+
+/*-------------------------------------------------------------------------------------------------------------------*/
+/* Wait for the ANT channel assignment to finish */
+static void UserApp1SM_WaitSlaveChannelAssign(void)
+{
+  /* Check if all the channel assignment is complete */
+  if( ( AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_CONFIGURED ) )
   {
     UserApp1_StateMachine = UserApp1SM_Idle;
   }
@@ -240,10 +286,10 @@ static void UserApp1SM_WaitChannelAssign(void)
     UserApp1_StateMachine = UserApp1SM_Error;
   }
       
-} /* end UserApp1SM_WaitChannelAssign() */
+} /* end UserApp1SM_WaitSlaveChannelAssign() */
 
 
-  /*-------------------------------------------------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for a message to be queued */
 static void UserApp1SM_Idle(void)
 {
@@ -260,10 +306,6 @@ static void UserApp1SM_Idle(void)
     /* Queue open channel and change LED0 from yellow to blinking green to indicate channel is opening */
     AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
     
-    /* Set timer and advance states */
-    UserApp1_u32Timeout = G_u32SystemTime1ms;
-    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
-    
     /*Display "Seeker!" or "Hide!"*/
     LCDCommand( LCD_CLEAR_CMD );
     if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_0 ) 
@@ -271,7 +313,13 @@ static void UserApp1SM_Idle(void)
       LCDMessage(LINE1_START_ADDR, auHideMessage);
     }
     else if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 ) 
+    {
       LCDMessage(LINE1_START_ADDR, auSeekerMessage);
+    }
+    
+    /* Set timer and advance states */
+    UserApp1_u32Timeout = G_u32SystemTime1ms;
+    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
   }
   
 } /* end UserApp1SM_Idle() */
@@ -291,8 +339,15 @@ static void UserApp1SM_WaitChannelOpen(void)
 #ifdef MPG2
     LedOn(GREEN0);
 #endif /* MPG2 */
+    if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_0 ) 
+    {
+      UserApp1_StateMachine = UserApp1SM_MasterChannelOpen;
+    }
+    else if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 ) 
+    {
+      UserApp1_StateMachine = UserApp1SM_SlaveChannelOpen;
+    }
     
-    UserApp1_StateMachine = UserApp1SM_ChannelOpen;
   }
   
   /* Check for timeout */
@@ -318,7 +373,7 @@ static void UserApp1SM_WaitChannelOpen(void)
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Channel is open, so monitor data */
-static void UserApp1SM_ChannelOpen(void)
+static void UserApp1SM_SlaveChannelOpen(void)
 {
   u8 auSeekerMessage1[] = "Ready or not!";
   u8 auSeekerMessage2[] = "Here I come!";
