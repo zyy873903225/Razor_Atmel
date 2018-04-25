@@ -419,167 +419,170 @@ static void UserApp1SM_SlaveChannelOpen(void)
   
   if( !b10s_countdown )
   {
-    if(G_eAntApiCurrentMessageClass == ANT_DATA)
+    if( AntReadAppMessageBuffer() )
     {
-      if( G_sAntApiCurrentMessageExtData.s8RSSI > -50 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
+      if(G_eAntApiCurrentMessageClass == ANT_DATA)
       {
-        /* change LED */
-        LedOn(WHITE);
-        LedOn(PURPLE);
-        LedOn(BLUE);
-        LedOn(CYAN);
-        LedOn(GREEN);
-        LedOn(YELLOW);
-        LedOn(ORANGE);
-        LedOn(RED);
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -50 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
+        {
+          /* change LED */
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOn(ORANGE);
+          LedOn(RED);
+          
+          /* Update LCD to starting screen. */
+          LCDCommand( LCD_CLEAR_CMD );
+          LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
+          
+          u16Set_Sound_Frequency_of_BUZZER = 200;
+        }
         
-        /* Update LCD to starting screen. */
-        LCDCommand( LCD_CLEAR_CMD );
-        LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -60 && G_sAntApiCurrentMessageExtData.s8RSSI <= -50 )
+        {    
+          /* change LED */
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOn(ORANGE);
+          LedOff(RED);
+          
+          u16Set_Sound_Frequency_of_BUZZER = 200;
+          
+        }
         
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -70 && G_sAntApiCurrentMessageExtData.s8RSSI <= -60 )
+        {
+          /* change LED */
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+          
+          u16Set_Sound_Frequency_of_BUZZER = 400;
+          
+        }
+        
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -80 && G_sAntApiCurrentMessageExtData.s8RSSI <= -70 )
+        {
+          /* change LED */
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+          
+          u16Set_Sound_Frequency_of_BUZZER = 600;
+          
+        }
+        
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -90 && G_sAntApiCurrentMessageExtData.s8RSSI <= -80 )
+        {
+          /* change LED */
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+          
+          u16Set_Sound_Frequency_of_BUZZER = 800;
+          
+        }
+        
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -100 && G_sAntApiCurrentMessageExtData.s8RSSI <= -90 )
+        {
+          /* change LED */
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+          
+          u16Set_Sound_Frequency_of_BUZZER = 1000;
+          
+        }
+        
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -110 && G_sAntApiCurrentMessageExtData.s8RSSI <= -100 )
+        {
+          /* change LED */
+          LedOff(WHITE);
+          LedOn(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+          
+          u16Set_Sound_Frequency_of_BUZZER = 1200;
+          
+        }
+        
+        if(G_sAntApiCurrentMessageExtData.s8RSSI <= -110 )
+        {
+          /* change LED */
+          LedOn(WHITE);
+          LedOff(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+          
+          u16Set_Sound_Frequency_of_BUZZER = 1400;
+          
+        }
+        
+        /* display RSSI */
+        if( s8Last_RSSI != G_sAntApiCurrentMessageExtData.s8RSSI )
+        {
+          s8Last_RSSI = G_sAntApiCurrentMessageExtData.s8RSSI;
+          
+          /* We got new data: show on LCD */
+          au8display_RSSI[6] = G_sAntApiCurrentMessageExtData.s8RSSI / 100;
+          au8display_RSSI[7] = ( G_sAntApiCurrentMessageExtData.s8RSSI / 10 ) % 10;
+          au8display_RSSI[8] = G_sAntApiCurrentMessageExtData.s8RSSI % 10;
+          
+          LCDMessage( LINE1_START_ADDR + 9 , au8display_RSSI );
+        }
+        
+        
+        u16Sound_Frequency_of_BUZZER++;
+        if( u16Sound_Frequency_of_BUZZER == 100 )
+        {
+          PWMAudioOff(BUZZER1);
+        }
+        
+        
+        if( u16Sound_Frequency_of_BUZZER == u16Set_Sound_Frequency_of_BUZZER )
+        {
+          u16Sound_Frequency_of_BUZZER = 0;
+          PWMAudioOn(BUZZER1);
+        }
       }
-      
-      if( G_sAntApiCurrentMessageExtData.s8RSSI > -60 && G_sAntApiCurrentMessageExtData.s8RSSI <= -50 )
-      {    
-        /* change LED */
-        LedOn(WHITE);
-        LedOn(PURPLE);
-        LedOn(BLUE);
-        LedOn(CYAN);
-        LedOn(GREEN);
-        LedOn(YELLOW);
-        LedOn(ORANGE);
-        LedOff(RED);
-        
-        u16Set_Sound_Frequency_of_BUZZER = 200;
-        
-      }
-      
-      if( G_sAntApiCurrentMessageExtData.s8RSSI > -70 && G_sAntApiCurrentMessageExtData.s8RSSI <= -60 )
-      {
-        /* change LED */
-        LedOn(WHITE);
-        LedOn(PURPLE);
-        LedOn(BLUE);
-        LedOn(CYAN);
-        LedOn(GREEN);
-        LedOn(YELLOW);
-        LedOff(ORANGE);
-        LedOff(RED);
-        
-        u16Set_Sound_Frequency_of_BUZZER = 400;
-        
-      }
-      
-      if( G_sAntApiCurrentMessageExtData.s8RSSI > -80 && G_sAntApiCurrentMessageExtData.s8RSSI <= -70 )
-      {
-        /* change LED */
-        LedOn(WHITE);
-        LedOn(PURPLE);
-        LedOn(BLUE);
-        LedOn(CYAN);
-        LedOn(GREEN);
-        LedOff(YELLOW);
-        LedOff(ORANGE);
-        LedOff(RED);
-        
-        u16Set_Sound_Frequency_of_BUZZER = 600;
-        
-      }
-      
-      if( G_sAntApiCurrentMessageExtData.s8RSSI > -90 && G_sAntApiCurrentMessageExtData.s8RSSI <= -80 )
-      {
-        /* change LED */
-        LedOn(WHITE);
-        LedOn(PURPLE);
-        LedOn(BLUE);
-        LedOn(CYAN);
-        LedOff(GREEN);
-        LedOff(YELLOW);
-        LedOff(ORANGE);
-        LedOff(RED);
-        
-        u16Set_Sound_Frequency_of_BUZZER = 800;
-        
-      }
-      
-      if( G_sAntApiCurrentMessageExtData.s8RSSI > -100 && G_sAntApiCurrentMessageExtData.s8RSSI <= -90 )
-      {
-        /* change LED */
-        LedOn(WHITE);
-        LedOn(PURPLE);
-        LedOn(BLUE);
-        LedOff(CYAN);
-        LedOff(GREEN);
-        LedOff(YELLOW);
-        LedOff(ORANGE);
-        LedOff(RED);
-        
-        u16Set_Sound_Frequency_of_BUZZER = 1000;
-        
-      }
-      
-      if( G_sAntApiCurrentMessageExtData.s8RSSI > -110 && G_sAntApiCurrentMessageExtData.s8RSSI <= -100 )
-      {
-        /* change LED */
-        LedOff(WHITE);
-        LedOn(PURPLE);
-        LedOff(BLUE);
-        LedOff(CYAN);
-        LedOff(GREEN);
-        LedOff(YELLOW);
-        LedOff(ORANGE);
-        LedOff(RED);
-        
-        u16Set_Sound_Frequency_of_BUZZER = 1200;
-        
-      }
-      
-      if(G_sAntApiCurrentMessageExtData.s8RSSI <= -110 )
-      {
-        /* change LED */
-        LedOn(WHITE);
-        LedOff(PURPLE);
-        LedOff(BLUE);
-        LedOff(CYAN);
-        LedOff(GREEN);
-        LedOff(YELLOW);
-        LedOff(ORANGE);
-        LedOff(RED);
-        
-        u16Set_Sound_Frequency_of_BUZZER = 1400;
-        
-      }
-      
-      /* display RSSI */
-      if( s8Last_RSSI != G_sAntApiCurrentMessageExtData.s8RSSI )
-      {
-        s8Last_RSSI = G_sAntApiCurrentMessageExtData.s8RSSI;
-        
-        /* We got new data: show on LCD */
-        au8display_RSSI[6] = G_sAntApiCurrentMessageExtData.s8RSSI / 100;
-        au8display_RSSI[7] = ( G_sAntApiCurrentMessageExtData.s8RSSI / 10 ) % 10;
-        au8display_RSSI[8] = G_sAntApiCurrentMessageExtData.s8RSSI % 10;
-        
-        LCDMessage( LINE1_START_ADDR + 9 , au8display_RSSI );
-      }
-      
-      
-      u16Sound_Frequency_of_BUZZER++;
-      if( u16Sound_Frequency_of_BUZZER == 100 )
-      {
-        PWMAudioOff(BUZZER1);
-      }
-      
-      
-      if( u16Sound_Frequency_of_BUZZER == u16Set_Sound_Frequency_of_BUZZER )
-      {
-        u16Sound_Frequency_of_BUZZER = 0;
-        PWMAudioOn(BUZZER1);
-      }
-    }
-  }  
-  
+    }  
+  }
 } /* end UserApp1SM_ChannelOpen() */
 
 
