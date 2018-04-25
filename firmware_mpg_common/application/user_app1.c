@@ -380,33 +380,33 @@ static void UserApp1SM_SlaveChannelOpen(void)
   u8 auSeekerSucceed[] = "Found you!";
   u8 auHideFound[] = "You found me!";
   
-  static u8 au8display_RSSI="RSSI:   dBm"
+  static s8 s8Last_RSSI=0;
   static u16 u16_10s_countdown = 0;
   static bool b10s_countdown = TRUE;
-   
-  /*10 second countdown*/
-  if( b10s_countdown )
-  {
-    u16_10s_countdown++;
-    if( u16_10s_countdown == 10000 )
+  static u8 au8display_RSSI="RSSI:-   dBm"
+    
+    /*10 second countdown*/
+    if( b10s_countdown )
     {
-      /* set the countdown to 0 */
-      u16_10s_countdown = 0;
-      bcountdown = FALSE;
-      if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 )
+      u16_10s_countdown++;
+      if( u16_10s_countdown == 10000 )
       {
-        /* Update LCD to starting screen. */
-        LCDCommand( LCD_CLEAR_CMD );
-        LCDMessage( LINE1_START_ADDR, auSeekerMessage1 );
-        LCDMessage( LINE2_START_ADDR, auSeekerMessage2 );
+        /* set the countdown to 0 */
+        u16_10s_countdown = 0;
+        bcountdown = FALSE;
+        if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 )
+        {
+          /* Update LCD to starting screen. */
+          LCDCommand( LCD_CLEAR_CMD );
+          LCDMessage( LINE1_START_ADDR, auSeekerMessage1 );
+          LCDMessage( LINE2_START_ADDR, auSeekerMessage2 );
+        }
       }
     }
-  }
   
   if( !b10s_countdown )
   {
-    
-    
+      
     if( G_sAntApiCurrentMessageExtData.s8RSSI > -50 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
     {
       /*change LED */
@@ -515,6 +515,20 @@ static void UserApp1SM_SlaveChannelOpen(void)
       LedOff(ORANGE);
       LedOff(RED);
     }
+    
+    /*display RSSI*/
+    if( s8Last_RSSI != G_sAntApiCurrentMessageExtData.s8RSSI )
+    {
+      s8Last_RSSI = G_sAntApiCurrentMessageExtData.s8RSSI;
+      
+      /* We got new data: show on LCD */
+      au8display_RSSI[6] = G_sAntApiCurrentMessageExtData.s8RSSI / 100;
+      au8display_RSSI[7] = ( G_sAntApiCurrentMessageExtData.s8RSSI / 10 ) % 10;
+      au8display_RSSI[8] = G_sAntApiCurrentMessageExtData.s8RSSI % 10;
+      
+      LCDMessage( LINE1_START_ADDR + 9 , au8display_RSSI );
+    }
+    
   }
   
 } /* end UserApp1SM_ChannelOpen() */
