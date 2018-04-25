@@ -72,7 +72,9 @@ State Machine Declarations
 ***********************************************************************************************************************/
 static void UserApp1SM_WaitMasterChannelAssign(void);
 static void UserApp1SM_WaitSlaveChannelAssign(void);
+
 static void UserApp1SM_Idle(void);    
+
 static void UserApp1SM_WaitChannelOpen(void);
 static void UserApp1SM_MasterChannelOpen(void);
 static void UserApp1SM_SlaveChannelOpen(void);

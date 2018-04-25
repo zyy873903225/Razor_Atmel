@@ -380,11 +380,12 @@ static void UserApp1SM_SlaveChannelOpen(void)
   u8 auSeekerSucceed[] = "Found you!";
   u8 auHideFound[] = "You found me!";
   
+  static u8 au8display_RSSI="RSSI:   dBm"
   static u16 u16_10s_countdown = 0;
-  static bool bcountdown = TRUE;
+  static bool b10s_countdown = TRUE;
    
   /*10 second countdown*/
-  if( bcountdown )
+  if( b10s_countdown )
   {
     u16_10s_countdown++;
     if( u16_10s_countdown == 10000 )
@@ -402,8 +403,10 @@ static void UserApp1SM_SlaveChannelOpen(void)
     }
   }
   
-  if( !bcountdown && ( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 )  )
+  if( !b10s_countdown )
   {
+    
+    
     if( G_sAntApiCurrentMessageExtData.s8RSSI > -50 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
     {
       /*change LED */
@@ -418,14 +421,8 @@ static void UserApp1SM_SlaveChannelOpen(void)
       
       /* Update LCD to starting screen. */
       LCDCommand( LCD_CLEAR_CMD );
-      if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 )
-      { 
-        LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
-      }
-      else if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_0 )
-      {
-        LCDMessage( LINE1_START_ADDR, auHideFound );
-      }
+      LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
+      
     }
     
     if( G_sAntApiCurrentMessageExtData.s8RSSI > -60 && G_sAntApiCurrentMessageExtData.s8RSSI <= -50 )
