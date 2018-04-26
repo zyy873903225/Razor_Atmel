@@ -476,7 +476,12 @@ static void UserApp1SM_MasterChannelOpen(void)
     {
       /* Got the button, so complete one-time actions before next state */
       ButtonAcknowledge(BUTTON0);
+       
+      bgameover = FALSE;
+      b10s_countdown = TRUE;
+      
       AntCloseChannelNumber( ANT_CHANNEL_0 );
+      
       UserApp1_u32Timeout = G_u32SystemTime1ms;
       UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
     }
@@ -696,8 +701,14 @@ static void UserApp1SM_SlaveChannelOpen(void)
     if(WasButtonPressed(BUTTON0))
     {
       /* Got the button, so complete one-time actions before next state */
+      
       ButtonAcknowledge(BUTTON0);
+      
+      bgameover = FALSE;
+      b10s_countdown = TRUE;
+      
       AntCloseChannelNumber( ANT_CHANNEL_1 );
+      
       UserApp1_u32Timeout = G_u32SystemTime1ms;
       UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
     }
