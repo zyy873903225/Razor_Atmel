@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=1987108593
+Checksum=-915735534
 [JLinkDriver]
 CStepIntDis=_ 0
 WatchCond=_ 0
@@ -40,6 +40,7 @@ UnspecRange=1
 ActionState=1
 [watch_formats]
 Fmt0={W}1:G_sAntApiCurrentMessageExtData.s8RSSI	3	0
+Fmt1={W}1:s8Last_RSSI	3	0
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
@@ -59,7 +60,13 @@ Exclusions=
 mode=0
 [Breakpoints2]
 Bp0=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\application\mpgl1_board_test.c}.382.5" 0 0 1 "" 0 "" 0
-Count=1
+Bp1=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\firmware_mpg_common\application\user_app1.c}.430.11" 0 0 1 "" 0 "" 0
+Bp2=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\firmware_mpg_common\application\user_app1.c}.426.9" 0 0 1 "" 0 "" 0
+Bp3=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\firmware_mpg_common\application\user_app1.c}.453.11" 0 0 1 "" 0 "" 0
+Bp4=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\firmware_mpg_common\application\user_app1.c}.468.11" 0 0 1 "" 0 "" 0
+Bp5=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\firmware_mpg_common\application\user_app1.c}.486.11" 0 0 1 "" 0 "" 0
+Bp6=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\firmware_mpg_common\application\user_app1.c}.499.11" 0 0 1 "" 0 "" 0
+Count=7
 [Aliases]
 Count=0
 SuppressDialog=0

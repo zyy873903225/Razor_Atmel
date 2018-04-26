@@ -423,6 +423,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
     {
       if(G_eAntApiCurrentMessageClass == ANT_DATA)
       {
+        s8Last_RSSI = G_sAntApiCurrentMessageExtData.s8RSSI;
         if( G_sAntApiCurrentMessageExtData.s8RSSI > -50 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
         {
           /* change LED */
