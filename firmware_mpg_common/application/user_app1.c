@@ -72,6 +72,7 @@ static u32 UserApp1_u32Timeout;                      /* Timeout counter used acr
 static AntAssignChannelInfoType UserApp1_sMasterChannel;
 static AntAssignChannelInfoType UserApp1_sSlaveChannel;
   
+static u8 ANT_CHANNEL_USERAPP = ANT_CHANNEL_1;
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -100,7 +101,6 @@ Promises:
 void UserApp1Initialize(void)
 {
   u8 au8WelcomeMessage[] = "Hide and Go Seek!";
-  u8 au8Instructions[] = "Press B0 to Start!";
   
   /* set BUZZER 1 */
   PWMAudioSetFrequency(BUZZER1,700);
@@ -109,7 +109,6 @@ void UserApp1Initialize(void)
 #ifdef EIE1
   LCDCommand(LCD_CLEAR_CMD);
   LCDMessage(LINE1_START_ADDR, au8WelcomeMessage); 
-  LCDMessage(LINE2_START_ADDR, au8Instructions); 
 
   /* Start with LED0 in RED state = channel is not configured */
   LedOn(RED);
@@ -279,7 +278,7 @@ static void UserApp1SM_WaitSlaveChannelAssign(void)
   /* Check if all the channel assignment is complete */
   if( ( AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_CONFIGURED ) )
   {
-    UserApp1_StateMachine = UserApp1SM_Idle;
+    UserApp1_StateMachine = UserApp1SM_ChooseChannel;
   }
   
   /* Monitor for timeout */
@@ -293,11 +292,61 @@ static void UserApp1SM_WaitSlaveChannelAssign(void)
 
 
 /*-------------------------------------------------------------------------------------------------------------------*/
+/* Wait for choose Master or Slave  */
+static void UserApp1SM_ChooseChannel(void)
+{
+  u8 au8Instructions[]   = " Press B0 to Start!";
+  u8 auChooseMessage[]   = "Choose Your Role!";
+  u8 auRoleMessage[]     = "B1:Hider   B2:Finder";
+  static u16 u16delay    = 0;
+  
+  u16delay++;
+  if( u16delay == 500 )
+  {
+    u16delay = 0;
+    LCDCommand( LCD_CLEAR_CMD );
+    LCDMessage( LINE1_START_ADDR , auChooseMessage );
+    LCDMessage( LINE2_START_ADDR , auRoleMessage );
+  }
+  
+  /* Look for BUTTON 1 to open channel 0 */
+  if(WasButtonPressed(BUTTON1))
+  {
+    /* Got the button, so complete one-time actions before next state */
+    ButtonAcknowledge(BUTTON1);
+    
+    ANT_CHANNEL_USERAPP = ANT_CHANNEL_0;
+    
+    LCDCommand( LCD_CLEAR_CMD );
+    LCDMessage( LINE1_START_ADDR , "      Hider!!!" );
+    LCDMessage( LINE2_START_ADDR , au8Instructions );
+    
+    UserApp1_StateMachine = UserApp1SM_Idle;
+  }
+  
+  /* Look for BUTTON 2 to open channel 1 */
+  if(WasButtonPressed(BUTTON2))
+  {
+    /* Got the button, so complete one-time actions before next state */
+    ButtonAcknowledge(BUTTON2);
+    
+    ANT_CHANNEL_USERAPP = ANT_CHANNEL_1;
+    
+    LCDCommand( LCD_CLEAR_CMD );
+    LCDMessage( LINE1_START_ADDR , "     Seeker!!!" );
+    LCDMessage( LINE2_START_ADDR , au8Instructions );
+    
+    UserApp1_StateMachine = UserApp1SM_Idle;
+  }
+}
+
+
+/*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for a message to be queued */
 static void UserApp1SM_Idle(void)
 {
-  u8 auSeekerMessage[] = "Seeker!";
-  u8 auHideMessage[] = "Hide!";
+  u8 auSeekerMessage[] = "Your role is Seeker!";
+  u8 auHideMessage[]   = "Your role is Hide!";
   
   
   /* Look for BUTTON 0 to open channel */
@@ -326,7 +375,7 @@ static void UserApp1SM_Idle(void)
   }
   
 } /* end UserApp1SM_Idle() */
-     
+
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for channel to open */
@@ -357,7 +406,7 @@ static void UserApp1SM_WaitChannelOpen(void)
   if( IsTimeUp(&UserApp1_u32Timeout, TIMEOUT_VALUE) )
   {
     AntCloseChannelNumber(ANT_CHANNEL_USERAPP);
-
+    
 #ifdef MPG1
     LedOff(GREEN);
     LedOn(YELLOW);
@@ -370,7 +419,7 @@ static void UserApp1SM_WaitChannelOpen(void)
     
     UserApp1_StateMachine = UserApp1SM_Idle;
   }
-    
+  
 } /* end UserApp1SM_WaitChannelOpen() */
 
 
