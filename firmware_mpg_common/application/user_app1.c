@@ -497,6 +497,17 @@ static void UserApp1SM_SlaveChannelOpen(void)
   u8 auSeekerMessage1[]                       = "Ready or not!";
   u8 auSeekerMessage2[]                       = "Here I come!";
   u8 auSeekerSucceed[]                        = "Found you!";
+  u16 song[] = {
+                  277,277,415,415,466,466,415,
+                  370,370,330,330,311,311,277,
+                  415,415,370,370,330,330,311,
+                  415,415,370,370,330,330,311,
+                  277,277,415,415,466,466,415,
+                  370,370,330,330,311,311,277
+                };
+  
+  static u16 u8MusicTime                      = 0;
+  static u8 songindex                         = 0;
   static s8 s8Last_RSSI                       = 0;
   static u16 u16_10s_countdown                = 0;
   static u16 u16Set_Sound_Frequency_of_BUZZER = 1400;
@@ -505,6 +516,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
   static u8 au8TestMessage[]                  = {0xAB, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF, 0xAB, 0xCD};
   static bool bgameover                       = FALSE;
   static bool b10s_countdown                  = TRUE;
+  static bool bBUZZER                         = FALSE;
   
   /* 10 second countdown */
   if( b10s_countdown )
@@ -569,8 +581,8 @@ static void UserApp1SM_SlaveChannelOpen(void)
           LedOn(ORANGE);
           LedOn(RED);
           
-          u16Set_Sound_Frequency_of_BUZZER = 200;
           bgameover = TRUE;
+          bBUZZER   = TRUE;
           
           /* Tell hider that seeker has found him */
           AntQueueBroadcastMessage(ANT_CHANNEL_1, au8TestMessage);
@@ -696,7 +708,30 @@ static void UserApp1SM_SlaveChannelOpen(void)
     }   
   }
   
- if( bgameover )
+  if( bBUZZER )
+  {
+    u8MusicTime++;
+    if ( u8MusicTime == 400 )
+    {
+      if( songindex == 41)
+      {
+        songindex = 0;
+      }
+      u8MusicTime = 0;
+      PWMAudioSetFrequency( BUZZER2 , song[songindex] );
+      PWMAudioOn( BUZZER2 );
+      PWMAudioOff( BUZZER2 );
+      songindex++;  
+    }
+    
+    if ( u8MusicTime == 1000 )
+    {
+      u8MusicTime = 0;
+      PWMAudioOff( BUZZER2 );
+    }
+  }
+  
+  if( bgameover )
   {
     if(WasButtonPressed(BUTTON0))
     {
@@ -705,6 +740,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
       ButtonAcknowledge(BUTTON0);
       
       bgameover = FALSE;
+      bBUZZER = FALSE;
       b10s_countdown = TRUE;
       
       AntCloseChannelNumber( ANT_CHANNEL_1 );
