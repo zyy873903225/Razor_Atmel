@@ -567,13 +567,12 @@ static void UserApp1SM_SlaveChannelOpen(void)
           LCDMessage( LINE1_START_ADDR + 9 , au8display_RSSI );
         }
         
-        
+        /* Change Sound Frequency of BUZZER according to distance. */
         u16Sound_Frequency_of_BUZZER++;
         if( u16Sound_Frequency_of_BUZZER == 100 )
         {
           PWMAudioOff(BUZZER1);
         }
-        
         
         if( u16Sound_Frequency_of_BUZZER == u16Set_Sound_Frequency_of_BUZZER )
         {
