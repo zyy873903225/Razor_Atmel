@@ -297,7 +297,7 @@ static void UserApp1SM_ChooseChannel(void)
 {
   u8 au8Instructions[]   = " Press B0 to Start!";
   u8 auChooseMessage[]   = "Choose Your Role!";
-  u8 auRoleMessage[]     = "B1:Hider   B2:Finder";
+  u8 auRoleMessage[]     = "B1:Hider   B2:Seeker";
   static u16 u16delay    = 0;
   
   u16delay++;
@@ -458,6 +458,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
   static u16 u16Sound_Frequency_of_BUZZER     = 0;
   static bool b10s_countdown                  = TRUE;
   static u8 au8RSSI_value[]                   = "0";
+  static u8 au8TestMessage[]                  = {0xAB, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF, 0xAB, 0xCD};
   
   /* 10 second countdown */
   if( b10s_countdown )
@@ -506,7 +507,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
           AntGetdBmAscii( s8Last_RSSI , au8RSSI_value );
           
           LCDCommand( LCD_CLEAR_CMD );
-          LCDMessage( LINE1_START_ADDR , "Finding..." );
+          LCDMessage( LINE1_START_ADDR , "Seeking..." );
           LCDMessage( LINE1_START_ADDR + 9 , "RSSI:" );
           LCDMessage( LINE2_START_ADDR, au8RSSI_value );
           LCDMessage( LINE2_START_ADDR + 3 , "dBm" );
@@ -528,6 +529,8 @@ static void UserApp1SM_SlaveChannelOpen(void)
           LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
           
           u16Set_Sound_Frequency_of_BUZZER = 200;
+          
+          AntQueueBroadcastMessage(ANT_CHANNEL_1, au8TestMessage);
         }
         
         if( G_sAntApiCurrentMessageExtData.s8RSSI > -56 && G_sAntApiCurrentMessageExtData.s8RSSI <= -48 )
