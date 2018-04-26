@@ -378,7 +378,20 @@ static void UserApp1SM_WaitChannelOpen(void)
 /* Channel of Master is open, so monitor data */
 static void UserApp1SM_MasterChannelOpen(void)
 {
-
+  u8 auHideFound[]= "You found me!";
+  
+   if( AntReadAppMessageBuffer() )
+    {
+      if(G_eAntApiCurrentMessageClass == ANT_DATA)
+      {
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -48 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
+        {
+          LCDCommand( LCD_CLEAR_CMD );
+          LCDMessage( LINE1_START_ADDR , auHideFound );
+        }
+      }
+    }
+  
 }
 
 
@@ -389,14 +402,13 @@ static void UserApp1SM_SlaveChannelOpen(void)
   u8 auSeekerMessage1[]                       = "Ready or not!";
   u8 auSeekerMessage2[]                       = "Here I come!";
   u8 auSeekerSucceed[]                        = "Found you!";
-  u8 auHideFound[]                            = "You found me!";
   
   static s8 s8Last_RSSI                       = 0;
   static u16 u16_10s_countdown                = 0;
-  static u16 u16Set_Sound_Frequency_of_BUZZER = 200;
+  static u16 u16Set_Sound_Frequency_of_BUZZER = 1400;
   static u16 u16Sound_Frequency_of_BUZZER     = 0;
   static bool b10s_countdown                  = TRUE;
-  static u8 au8display_RSSI[]                 = "RSSI:-   dBm";
+  static u8 au8RSSI_value[]                   = "0";
   
   /* 10 second countdown */
   if( b10s_countdown )
@@ -419,12 +431,39 @@ static void UserApp1SM_SlaveChannelOpen(void)
   
   if( !b10s_countdown )
   {
+    /* Change Sound Frequency of BUZZER according to distance. */
+    u16Sound_Frequency_of_BUZZER++;
+    if( u16Sound_Frequency_of_BUZZER == 100 )
+    {
+      PWMAudioOff(BUZZER1);
+    }
+    
+    if( u16Sound_Frequency_of_BUZZER == u16Set_Sound_Frequency_of_BUZZER || u16Sound_Frequency_of_BUZZER == 1400 )
+    {
+      u16Sound_Frequency_of_BUZZER = 0;
+      PWMAudioOn(BUZZER1);
+    }
+    
+    
     if( AntReadAppMessageBuffer() )
     {
       if(G_eAntApiCurrentMessageClass == ANT_DATA)
       {
-        s8Last_RSSI = G_sAntApiCurrentMessageExtData.s8RSSI;
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -50 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
+         /* display RSSI */
+        if( s8Last_RSSI != G_sAntApiCurrentMessageExtData.s8RSSI )
+        {
+          s8Last_RSSI = G_sAntApiCurrentMessageExtData.s8RSSI;
+          
+          AntGetdBmAscii( s8Last_RSSI , au8RSSI_value );
+          
+          LCDCommand( LCD_CLEAR_CMD );
+          LCDMessage( LINE1_START_ADDR , "Finding..." );
+          LCDMessage( LINE1_START_ADDR + 9 , "RSSI:" );
+          LCDMessage( LINE2_START_ADDR, au8RSSI_value );
+          LCDMessage( LINE2_START_ADDR + 3 , "dBm" );
+        }             
+        
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -48 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
         {
           /* change LED */
           LedOn(WHITE);
@@ -437,13 +476,12 @@ static void UserApp1SM_SlaveChannelOpen(void)
           LedOn(RED);
           
           /* Update LCD to starting screen. */
-          LCDCommand( LCD_CLEAR_CMD );
           LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
           
           u16Set_Sound_Frequency_of_BUZZER = 200;
         }
         
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -60 && G_sAntApiCurrentMessageExtData.s8RSSI <= -50 )
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -56 && G_sAntApiCurrentMessageExtData.s8RSSI <= -48 )
         {    
           /* change LED */
           LedOn(WHITE);
@@ -459,7 +497,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
           
         }
         
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -70 && G_sAntApiCurrentMessageExtData.s8RSSI <= -60 )
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -64 && G_sAntApiCurrentMessageExtData.s8RSSI <= -56 )
         {
           /* change LED */
           LedOn(WHITE);
@@ -475,7 +513,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
           
         }
         
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -80 && G_sAntApiCurrentMessageExtData.s8RSSI <= -70 )
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -72 && G_sAntApiCurrentMessageExtData.s8RSSI <= -64 )
         {
           /* change LED */
           LedOn(WHITE);
@@ -491,7 +529,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
           
         }
         
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -90 && G_sAntApiCurrentMessageExtData.s8RSSI <= -80 )
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -80 && G_sAntApiCurrentMessageExtData.s8RSSI <= -72 )
         {
           /* change LED */
           LedOn(WHITE);
@@ -507,7 +545,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
           
         }
         
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -100 && G_sAntApiCurrentMessageExtData.s8RSSI <= -90 )
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -88 && G_sAntApiCurrentMessageExtData.s8RSSI <= -80 )
         {
           /* change LED */
           LedOn(WHITE);
@@ -523,7 +561,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
           
         }
         
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -110 && G_sAntApiCurrentMessageExtData.s8RSSI <= -100 )
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -96 && G_sAntApiCurrentMessageExtData.s8RSSI <= -88 )
         {
           /* change LED */
           LedOff(WHITE);
@@ -539,7 +577,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
           
         }
         
-        if(G_sAntApiCurrentMessageExtData.s8RSSI <= -110 )
+        if(G_sAntApiCurrentMessageExtData.s8RSSI <= -96 )
         {
           /* change LED */
           LedOn(WHITE);
@@ -555,33 +593,11 @@ static void UserApp1SM_SlaveChannelOpen(void)
           
         }
         
-        /* display RSSI */
-        if( s8Last_RSSI != G_sAntApiCurrentMessageExtData.s8RSSI )
-        {
-          s8Last_RSSI = G_sAntApiCurrentMessageExtData.s8RSSI;
-          
-          /* We got new data: show on LCD */
-          au8display_RSSI[6] = G_sAntApiCurrentMessageExtData.s8RSSI / 100;
-          au8display_RSSI[7] = ( G_sAntApiCurrentMessageExtData.s8RSSI / 10 ) % 10;
-          au8display_RSSI[8] = G_sAntApiCurrentMessageExtData.s8RSSI % 10;
-          
-          LCDMessage( LINE1_START_ADDR + 9 , au8display_RSSI );
-        }
-        
-        /* Change Sound Frequency of BUZZER according to distance. */
-        u16Sound_Frequency_of_BUZZER++;
-        if( u16Sound_Frequency_of_BUZZER == 100 )
-        {
-          PWMAudioOff(BUZZER1);
-        }
-        
-        if( u16Sound_Frequency_of_BUZZER == u16Set_Sound_Frequency_of_BUZZER )
-        {
-          u16Sound_Frequency_of_BUZZER = 0;
-          PWMAudioOn(BUZZER1);
-        }
+       
       }
-    }  
+    } 
+    
+    
   }
 } /* end UserApp1SM_ChannelOpen() */
 

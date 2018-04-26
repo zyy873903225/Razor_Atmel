@@ -88,6 +88,7 @@ bool AntReadAppMessageBuffer(void);
 void AntApiInitialize(void);
 void AntApiRunActiveState(void);
 
+void AntGetdBmAscii(s8 s8RssiValue_, u8* pu8Result_);
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/

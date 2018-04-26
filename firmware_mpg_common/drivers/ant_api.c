@@ -515,6 +515,57 @@ bool AntCloseChannelNumber(AntChannelNumberType eChannel_)
 
 
 
+/*------------------------------------------------------------------------------*/
+void AntGetdBmAscii(s8 s8RssiValue_, u8* pu8Result_)
+{
+  u8 u8AbsoluteValue;
+  
+  /* Handle the positive number */
+  if(s8RssiValue_ >= 0)
+  {
+    /* Print '+' but only for numbers larger than 0 */
+    *pu8Result_ = '+';
+    if(s8RssiValue_ == 0)
+    {
+      *pu8Result_ = ' ';
+    }
+    
+    u8AbsoluteValue = (u8)s8RssiValue_;
+  }
+  /* Handle the negative number */
+  else
+  {
+    *pu8Result_ = '-';
+    
+    /* #EIE Task 2
+    s8RssiValue is a two's complement (bu(3) ma(3)) signed value
+    Convert to the unsigned absolute value u8AbsoluteValue
+    Example:
+    s8RssiValue_ = -50
+    u8AbsoluteValue = 50
+    Hint: what character is used to invert bits in C language?
+    */
+    u8AbsoluteValue = (u8)(~s8RssiValue_ + 1);
+  }
+  
+  /* Limit any display to two digit */
+  if(u8AbsoluteValue > 99)
+  {
+    u8AbsoluteValue = 99;
+  }
+  
+
+  /* Write the numeric value */
+  pu8Result_++;
+  *pu8Result_ = (u8AbsoluteValue / 10) + NUMBER_ASCII_TO_DEC;
+  pu8Result_++;
+  *pu8Result_ = (u8AbsoluteValue % 10) + NUMBER_ASCII_TO_DEC;
+  
+} /* end AntGetdBmAscii() */
+
+
+
+
 
 /*------------------------------------------------------------------------------
 Function: AntRadioStatusChannel
