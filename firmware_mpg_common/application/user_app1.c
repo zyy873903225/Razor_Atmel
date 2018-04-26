@@ -346,7 +346,7 @@ static void UserApp1SM_ChooseChannel(void)
 static void UserApp1SM_Idle(void)
 {
   u8 auSeekerMessage[] = "Your role is Seeker!";
-  u8 auHideMessage[]   = "Your role is Hide!";
+  u8 auHideMessage[]   = "Your role is Hider!";
   
   
   /* Look for BUTTON 0 to open channel */
@@ -427,19 +427,60 @@ static void UserApp1SM_WaitChannelOpen(void)
 /* Channel of Master is open, so monitor data */
 static void UserApp1SM_MasterChannelOpen(void)
 {
-  u8 auHideFound[]= "You found me!";
+  u8 auHideFound[]             = "You found me!";
+  u8 au8TestMessage[]          = {0xAB, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF, 0xAB, 0xCD};
+  static u16 u16_10s_countdown = 0;
+  static bool bgameover        = FALSE;
+  static bool b10s_countdown   = TRUE;
   
-   if( AntReadAppMessageBuffer() )
+  AntQueueBroadcastMessage(ANT_CHANNEL_0, au8TestMessage);
+  
+  /* 10 second countdown */
+  if( b10s_countdown )
+  {
+    u16_10s_countdown++;
+    if( u16_10s_countdown == 1000 )
+    {
+      /* set the countdown to 0 */
+      u16_10s_countdown = 0;
+      b10s_countdown = FALSE;
+      
+      /* Update LCD to starting screen. */
+      LCDCommand( LCD_CLEAR_CMD );
+      //for(u16 i=0; i<100000; i++);
+      LCDMessage( LINE1_START_ADDR, "10s has gone!" );
+      LCDMessage( LINE2_START_ADDR, "Seeker is finding!" );     
+    }
+  }
+  
+  if( (!b10s_countdown) && (!bgameover) )
+  {
+    if( AntReadAppMessageBuffer() )
     {
       if(G_eAntApiCurrentMessageClass == ANT_DATA)
       {
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -48 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
-        {
-          LCDCommand( LCD_CLEAR_CMD );
-          LCDMessage( LINE1_START_ADDR , auHideFound );
-        }
+        bgameover = TRUE;
+        
+        LCDCommand( LCD_CLEAR_CMD );
+        LCDMessage( LINE1_START_ADDR , auHideFound );
+        LCDMessage( LINE2_START_ADDR , "GAME OVER B0:RESTART" );
+        
       }
+      LedOn(WHITE);
     }
+  }
+  
+  if( bgameover )
+  {
+    if(WasButtonPressed(BUTTON0))
+    {
+      /* Got the button, so complete one-time actions before next state */
+      ButtonAcknowledge(BUTTON0);
+      AntCloseChannelNumber( ANT_CHANNEL_0 );
+      UserApp1_u32Timeout = G_u32SystemTime1ms;
+      UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
+    }
+  }
   
 }
 
@@ -451,14 +492,14 @@ static void UserApp1SM_SlaveChannelOpen(void)
   u8 auSeekerMessage1[]                       = "Ready or not!";
   u8 auSeekerMessage2[]                       = "Here I come!";
   u8 auSeekerSucceed[]                        = "Found you!";
-  
   static s8 s8Last_RSSI                       = 0;
   static u16 u16_10s_countdown                = 0;
   static u16 u16Set_Sound_Frequency_of_BUZZER = 1400;
   static u16 u16Sound_Frequency_of_BUZZER     = 0;
-  static bool b10s_countdown                  = TRUE;
   static u8 au8RSSI_value[]                   = "0";
   static u8 au8TestMessage[]                  = {0xAB, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF, 0xAB, 0xCD};
+  static bool bgameover                       = FALSE;
+  static bool b10s_countdown                  = TRUE;
   
   /* 10 second countdown */
   if( b10s_countdown )
@@ -469,17 +510,15 @@ static void UserApp1SM_SlaveChannelOpen(void)
       /* set the countdown to 0 */
       u16_10s_countdown = 0;
       b10s_countdown = FALSE;
-      if( ANT_CHANNEL_USERAPP == ANT_CHANNEL_1 )
-      {
-        /* Update LCD to starting screen. */
-        LCDCommand( LCD_CLEAR_CMD );
-        LCDMessage( LINE1_START_ADDR, auSeekerMessage1 );
-        LCDMessage( LINE2_START_ADDR, auSeekerMessage2 );
-      }
+      
+      /* Update LCD to starting screen. */
+      LCDCommand( LCD_CLEAR_CMD );
+      LCDMessage( LINE1_START_ADDR, auSeekerMessage1 );
+      LCDMessage( LINE2_START_ADDR, auSeekerMessage2 );    
     }
   }
   
-  if( !b10s_countdown )
+  if( !b10s_countdown && !bgameover )
   {
     /* Change Sound Frequency of BUZZER according to distance. */
     u16Sound_Frequency_of_BUZZER++;
@@ -513,7 +552,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
           LCDMessage( LINE2_START_ADDR + 3 , "dBm" );
         }             
         
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -48 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -45 && G_sAntApiCurrentMessageExtData.s8RSSI <= -40 )
         {
           /* change LED */
           LedOn(WHITE);
@@ -525,15 +564,19 @@ static void UserApp1SM_SlaveChannelOpen(void)
           LedOn(ORANGE);
           LedOn(RED);
           
-          /* Update LCD to starting screen. */
-          LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
-          
           u16Set_Sound_Frequency_of_BUZZER = 200;
+          bgameover = TRUE;
           
+          /* Tell hider that seeker has found him */
           AntQueueBroadcastMessage(ANT_CHANNEL_1, au8TestMessage);
+          
+          /* Update LCD to starting screen. */
+          LCDCommand( LCD_CLEAR_CMD );
+          LCDMessage( LINE1_START_ADDR, auSeekerSucceed );
+          LCDMessage( LINE2_START_ADDR , "GAME OVER B0:RESTART" );
         }
         
-        if( G_sAntApiCurrentMessageExtData.s8RSSI > -56 && G_sAntApiCurrentMessageExtData.s8RSSI <= -48 )
+        if( G_sAntApiCurrentMessageExtData.s8RSSI > -56 && G_sAntApiCurrentMessageExtData.s8RSSI <= -45 )
         {    
           /* change LED */
           LedOn(WHITE);
@@ -644,13 +687,22 @@ static void UserApp1SM_SlaveChannelOpen(void)
           u16Set_Sound_Frequency_of_BUZZER = 1400;
           
         }
-        
-       
       }
-    } 
-    
-    
+    }   
   }
+  
+ if( bgameover )
+  {
+    if(WasButtonPressed(BUTTON0))
+    {
+      /* Got the button, so complete one-time actions before next state */
+      ButtonAcknowledge(BUTTON0);
+      AntCloseChannelNumber( ANT_CHANNEL_1 );
+      UserApp1_u32Timeout = G_u32SystemTime1ms;
+      UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
+    }
+  }
+  
 } /* end UserApp1SM_ChannelOpen() */
 
 
@@ -670,7 +722,7 @@ static void UserApp1SM_WaitChannelClose(void)
     LedOn(GREEN0);
     LedOn(RED0);
 #endif /* MPG2 */
-    UserApp1_StateMachine = UserApp1SM_Idle;
+    UserApp1_StateMachine = UserApp1SM_ChooseChannel;
   }
   
   /* Check for timeout */
