@@ -477,13 +477,22 @@ static void UserApp1SM_MasterChannelOpen(void)
       /* Got the button, so complete one-time actions before next state */
       ButtonAcknowledge(BUTTON0);
        
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+      LedOff(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+      
       bgameover = FALSE;
       b10s_countdown = TRUE;
       
       AntCloseChannelNumber( ANT_CHANNEL_0 );
       
       UserApp1_u32Timeout = G_u32SystemTime1ms;
-      UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
+      UserApp1_StateMachine = UserApp1SM_MasterWaitChannelClose;
     }
   }
   
@@ -720,7 +729,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
       u8MusicTime = 0;
       PWMAudioSetFrequency( BUZZER2 , song[songindex] );
       PWMAudioOn( BUZZER2 );
-      PWMAudioOff( BUZZER2 );
+      PWMAudioOff( BUZZER1 );
       songindex++;  
     }
     
@@ -739,14 +748,24 @@ static void UserApp1SM_SlaveChannelOpen(void)
       
       ButtonAcknowledge(BUTTON0);
       
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+      LedOff(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+      
       bgameover = FALSE;
       bBUZZER = FALSE;
       b10s_countdown = TRUE;
+      PWMAudioOff( BUZZER2 );
       
       AntCloseChannelNumber( ANT_CHANNEL_1 );
       
       UserApp1_u32Timeout = G_u32SystemTime1ms;
-      UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
+      UserApp1_StateMachine = UserApp1SM_SlaveWaitChannelClose;
     }
   }
   
@@ -755,10 +774,48 @@ static void UserApp1SM_SlaveChannelOpen(void)
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for channel to close */
-static void UserApp1SM_WaitChannelClose(void)
+static void UserApp1SM_MasterWaitChannelClose(void)
 {
   /* Monitor the channel status to check if channel is closed */
-  if(AntRadioStatusChannel(ANT_CHANNEL_USERAPP) == ANT_CLOSED)
+  if(AntRadioStatusChannel(ANT_CHANNEL_0) == ANT_CLOSED)
+  {
+#ifdef MPG1
+    LedOff(GREEN);
+    LedOn(YELLOW);
+#endif /* MPG1 */
+
+#ifdef MPG2
+    LedOn(GREEN0);
+    LedOn(RED0);
+#endif /* MPG2 */
+    UserApp1_StateMachine = UserApp1SM_ChooseChannel;
+  }
+  
+  /* Check for timeout */
+  if( IsTimeUp(&UserApp1_u32Timeout, TIMEOUT_VALUE) )
+  {
+#ifdef MPG1
+    LedOff(GREEN);
+    LedOff(YELLOW);
+    LedBlink(RED, LED_4HZ);
+#endif /* MPG1 */
+
+#ifdef MPG2
+    LedBlink(RED0, LED_4HZ);
+    LedOff(GREEN0);
+#endif /* MPG2 */
+    
+    UserApp1_StateMachine = UserApp1SM_Error;
+  }
+    
+} /* end UserApp1SM_WaitChannelClose() */
+
+/*-------------------------------------------------------------------------------------------------------------------*/
+/* Wait for channel to close */
+static void UserApp1SM_SlaveWaitChannelClose(void)
+{
+  /* Monitor the channel status to check if channel is closed */
+  if(AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_CLOSED)
   {
 #ifdef MPG1
     LedOff(GREEN);

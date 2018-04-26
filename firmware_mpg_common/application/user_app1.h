@@ -77,9 +77,12 @@ static void UserApp1SM_ChooseChannel(void);
 static void UserApp1SM_Idle(void);    
 
 static void UserApp1SM_WaitChannelOpen(void);
+
 static void UserApp1SM_MasterChannelOpen(void);
 static void UserApp1SM_SlaveChannelOpen(void);
-static void UserApp1SM_WaitChannelClose(void);
+
+static void UserApp1SM_MasterWaitChannelClose(void);
+static void UserApp1SM_SlaveWaitChannelClose(void);
 
 static void UserApp1SM_Error(void);         
 static void UserApp1SM_FailedInit(void);        
