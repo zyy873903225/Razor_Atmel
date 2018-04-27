@@ -433,7 +433,7 @@ static void UserApp1SM_MasterChannelOpen(void)
   static bool bgameover        = FALSE;
   static bool b10s_countdown   = TRUE;
   
-  AntQueueBroadcastMessage(ANT_CHANNEL_0, au8TestMessage);
+  
   
   /* 10 second countdown */
   if( b10s_countdown )
@@ -454,6 +454,8 @@ static void UserApp1SM_MasterChannelOpen(void)
   
   if( (!b10s_countdown) && (!bgameover) )
   {
+    AntQueueBroadcastMessage(ANT_CHANNEL_0, au8TestMessage);
+    
     if( AntReadAppMessageBuffer() )
     {
       if(G_eAntApiCurrentMessageClass == ANT_DATA)
