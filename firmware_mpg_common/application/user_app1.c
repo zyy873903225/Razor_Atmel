@@ -72,7 +72,7 @@ static u32 UserApp1_u32Timeout;                      /* Timeout counter used acr
 static AntAssignChannelInfoType UserApp1_sMasterChannel;
 static AntAssignChannelInfoType UserApp1_sSlaveChannel;
   
-static u8 ANT_CHANNEL_USERAPP = ANT_CHANNEL_1;
+static u8 ANT_CHANNEL_USERAPP = ANT_CHANNEL_0;
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -447,7 +447,6 @@ static void UserApp1SM_MasterChannelOpen(void)
       
       /* Update LCD to starting screen. */
       LCDCommand( LCD_CLEAR_CMD );
-      //for(u16 i=0; i<100000; i++);
       LCDMessage( LINE1_START_ADDR, "10s has gone!" );
       LCDMessage( LINE2_START_ADDR, "Seeker is finding!" );     
     }
