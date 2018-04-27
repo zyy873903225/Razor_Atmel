@@ -229,7 +229,7 @@ State Machine Function Definitions
 /* Wait for the ANT channel assignment to finish */
 static void UserApp1SM_WaitMasterChannelAssign(void)
 {
-  /* Check if all the channel assignment is complete */
+  /* Check if  the channel 0 assignment is complete */
   if( ( AntRadioStatusChannel(ANT_CHANNEL_0) == ANT_CONFIGURED ) )
   {
     if( AntAssignChannel(&UserApp1_sSlaveChannel) )
@@ -275,7 +275,7 @@ static void UserApp1SM_WaitMasterChannelAssign(void)
 /* Wait for the ANT channel assignment to finish */
 static void UserApp1SM_WaitSlaveChannelAssign(void)
 {
-  /* Check if all the channel assignment is complete */
+  /* Check if  the channel 1 assignment is complete */
   if( ( AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_CONFIGURED ) )
   {
     UserApp1_StateMachine = UserApp1SM_ChooseChannel;
@@ -496,6 +496,31 @@ static void UserApp1SM_MasterChannelOpen(void)
       UserApp1_StateMachine = UserApp1SM_MasterWaitChannelClose;
     }
   }
+  
+   /* press B3:restart */
+  if(WasButtonPressed(BUTTON3))
+    {
+      /* Got the button, so complete one-time actions before next state */
+      
+      ButtonAcknowledge(BUTTON3);
+      
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+      LedOff(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+      
+      bgameover = FALSE;
+      b10s_countdown = TRUE;
+      
+      AntCloseChannelNumber( ANT_CHANNEL_0 );
+      
+      UserApp1_u32Timeout = G_u32SystemTime1ms;
+      UserApp1_StateMachine = UserApp1SM_MasterWaitChannelClose;
+    }
   
 }
 
@@ -770,6 +795,32 @@ static void UserApp1SM_SlaveChannelOpen(void)
     }
   }
   
+  /* press B3:restart */
+  if(WasButtonPressed(BUTTON3))
+    {
+      /* Got the button, so complete one-time actions before next state */
+      
+      ButtonAcknowledge(BUTTON3);
+      
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+      LedOff(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+      
+      bgameover = FALSE;
+      bBUZZER = FALSE;
+      b10s_countdown = TRUE;
+      PWMAudioOff( BUZZER2 );
+      
+      AntCloseChannelNumber( ANT_CHANNEL_1 );
+      
+      UserApp1_u32Timeout = G_u32SystemTime1ms;
+      UserApp1_StateMachine = UserApp1SM_SlaveWaitChannelClose;
+    }
 } /* end UserApp1SM_ChannelOpen() */
 
 
