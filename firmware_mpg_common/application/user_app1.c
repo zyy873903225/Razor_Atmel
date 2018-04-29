@@ -454,10 +454,10 @@ static void UserApp1SM_MasterChannelOpen(void)
   
   if( (!b10s_countdown) && (!bgameover) )
   {
-    AntQueueBroadcastMessage(ANT_CHANNEL_0, au8TestMessage);
+    //AntQueueBroadcastMessage(ANT_CHANNEL_0, au8TestMessage);
     
     if( AntReadAppMessageBuffer() )
-    {
+    
       if(G_eAntApiCurrentMessageClass == ANT_DATA)
       {
         bgameover = TRUE;
@@ -468,7 +468,7 @@ static void UserApp1SM_MasterChannelOpen(void)
         
       }
       LedOn(WHITE);
-    }
+    
   }
   
   if( bgameover )
