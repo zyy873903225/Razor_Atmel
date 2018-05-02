@@ -439,7 +439,7 @@ static void UserApp1SM_MasterChannelOpen(void)
   if( b10s_countdown )
   {
     u16_10s_countdown++;
-    if( u16_10s_countdown == 1000 )
+    if( u16_10s_countdown == 10000 )
     {
       /* set the countdown to 0 */
       u16_10s_countdown = 0;
@@ -557,7 +557,7 @@ static void UserApp1SM_SlaveChannelOpen(void)
   if( b10s_countdown )
   {
     u16_10s_countdown++;
-    if( u16_10s_countdown == 1000 )
+    if( u16_10s_countdown == 10000 )
     {
       /* set the countdown to 0 */
       u16_10s_countdown = 0;
