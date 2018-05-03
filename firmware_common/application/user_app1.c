@@ -136,7 +136,26 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+  /*
+    button: PA_10_I2C_SCL
+    green: PA_15_BLADE_SCK
+    red: PA_14_BLADE_MOSI
+  */
+  static u32 u32Button = 0;
+  
+  u32Button = AT91C_BASE_PIOA -> PIO_PDSR & PA_10_I2C_SCL;
+  if (u32Button == 0)
+  {
+    AT91C_BASE_PIOA -> PIO_SODR = PA_15_BLADE_SCK;
+    //AT91C_BASE_PIOA -> PIO_SODR = PA_14_BLADE_MOSI;
+  }
+  else
+  {
+    AT91C_BASE_PIOA -> PIO_CODR = PA_15_BLADE_SCK;
+    //AT91C_BASE_PIOA -> PIO_CODR = PA_14_BLADE_MOSI;
+  }
+  
+  
 } /* end UserApp1SM_Idle() */
     
 
