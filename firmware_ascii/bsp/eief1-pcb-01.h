@@ -466,7 +466,7 @@ counter must be set at 1280. */
 0: No effect
 1: Pin is controlled by PIO
 */
-#define PIOA_PER_INIT (u32)0x8403C407
+#define PIOA_PER_INIT (u32)0x84030007
 /* 
     31 [1] PA_31_HEARTBEAT PIO control enabled
     30 [0] PA_30_AN_DEMO PIO control not enabled
@@ -488,13 +488,13 @@ counter must be set at 1280. */
     17 [1] PA_17_BUTTON0 PIO control enabled
     16 [1] PA_16_BLADE_CS PIO control enabled
 
-    15 [1] PA_15_BLADE_SCK PIO control not enabled
-    14 [1] PA_14_BLADE_MOSI PIO control not enabled
+    15 [0] PA_15_BLADE_SCK PIO control not enabled
+    14 [0] PA_14_BLADE_MOSI PIO control not enabled
     13 [0] PA_13_BLADE_MISO PIO control not enabled
     12 [0] PA_12_BLADE_UPOMI PIO control not enabled
 
     11 [0] PA_11_BLADE_UPIMO PIO control not enabled
-    10 [1] PA_10_I2C_SCL PIO control not enabled
+    10 [0] PA_10_I2C_SCL PIO control not enabled
     09 [0] PA_09_I2C_SDA PIO control not enabled
     08 [0] PA_08_SD_CS_MCDA3 PIO control not enabled
 
@@ -579,9 +579,9 @@ counter must be set at 1280. */
     17 [0] PA_17_BUTTON0 not controlled by peripheral
     16 [0] PA_16_BLADE_CS not controlled by peripheral
 
-    15 [0] PA_15_BLADE_SCK  controlled by peripheral
-    14 [0] PA_14_BLADE_MOSI  controlled by peripheral
-    13 [1] PA_13_BLADE_MISO  controlled by peripheral
+    15 [1] PA_15_BLADE_SCK controlled by peripheral
+    14 [1] PA_14_BLADE_MOSI controlled by peripheral
+    13 [1] PA_13_BLADE_MISO controlled by peripheral
     12 [1] PA_12_BLADE_UPOMI controlled by peripheral
 
     11 [1] PA_11_BLADE_UPIMO controlled by peripheral
@@ -676,7 +676,7 @@ Configures the pin as an output or input.
     12 [1] PA_12_BLADE_UPOMI output enabled
 
     11 [0] PA_11_BLADE_UPIMO  input
-    10 [0] PA_10_I2C_SCL input enabled
+    10 [1] PA_10_I2C_SCL output enabled
     09 [1] PA_09_I2C_SDA output enabled
     08 [1] PA_08_SD_CS_MCDA3 output enabled
 

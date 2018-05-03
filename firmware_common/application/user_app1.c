@@ -90,8 +90,7 @@ void UserApp1Initialize(void)
   AT91C_BASE_PIOA -> PIO_PER = PA_10_I2C_SCL;
   AT91C_BASE_PIOA -> PIO_PER = PA_15_BLADE_SCK;
   AT91C_BASE_PIOA -> PIO_PER = PA_14_BLADE_MOSI;
-  
-  
+    
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -146,12 +145,40 @@ static void UserApp1SM_Idle(void)
     red: PA_14_BLADE_MOSI
   */
   static u32 u32Button = 0;
+  static u32 u32Timer = 0;
+  static bool btwinkle_alternately = TRUE;
   
- 
-    AT91C_BASE_PIOA -> PIO_SODR = PA_15_BLADE_SCK;
-    AT91C_BASE_PIOA -> PIO_SODR = PA_14_BLADE_MOSI;
   
-
+  
+  u32Button = AT91C_BASE_PIOA -> PIO_PDSR & PA_10_I2C_SCL;
+  if ( u32Button == 0 )
+  {
+    u32Timer++;
+    if( u32Timer == 500 )
+    {
+      u32Timer = 0;
+      
+      if( btwinkle_alternately )
+      {
+        btwinkle_alternately = FALSE;
+        
+        AT91C_BASE_PIOA -> PIO_SODR = PA_15_BLADE_SCK;
+        AT91C_BASE_PIOA -> PIO_CODR = PA_14_BLADE_MOSI;
+      }
+      else
+      {
+        btwinkle_alternately = TRUE;
+        
+        AT91C_BASE_PIOA -> PIO_CODR = PA_15_BLADE_SCK;
+        AT91C_BASE_PIOA -> PIO_SODR = PA_14_BLADE_MOSI;
+      }
+    }
+  }
+  else
+  {
+    AT91C_BASE_PIOA -> PIO_CODR = PA_15_BLADE_SCK;
+    AT91C_BASE_PIOA -> PIO_CODR = PA_14_BLADE_MOSI;
+  }
   
 } /* end UserApp1SM_Idle() */
     
