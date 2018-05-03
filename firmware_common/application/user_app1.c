@@ -144,44 +144,67 @@ static void UserApp1SM_Idle(void)
     green: PA_15_BLADE_SCK
     red: PA_14_BLADE_MOSI
   */
-  static u32 u32Button = 0;
-  static u32 u32Timer = 0;
-  static bool btwinkle_alternately = TRUE;
+  static u32 u32Button           = 0;
+  static u32 u32Timer            = 0;
+  static u32 u32MusicTime        = 0;
+  static u32 u32songindex        = 0; 
+  static bool bblink_alternately = TRUE;
   
+  u16 song[] = {
+                  277,277,415,415,466,466,415,
+                  370,370,330,330,311,311,277,
+                  415,415,370,370,330,330,311,
+                  415,415,370,370,330,330,311,
+                  277,277,415,415,466,466,415,
+                  370,370,330,330,311,311,277
+                };
   
-  
+  /* judge if the button is pressed */
   u32Button = AT91C_BASE_PIOA -> PIO_PDSR & PA_10_I2C_SCL;
+  
   if ( u32Button == 0 )
   {
-    u32Timer++;
-    if( u32Timer == 500 )
+    u32MusicTime++;
+    if( u32MusicTime == 400 )
     {
-      u32Timer = 0;
+      u32MusicTime = 0;
       
-      if( btwinkle_alternately )
+      if( u32songindex == 41)
       {
-        btwinkle_alternately = FALSE;
+        u32songindex = 0;
+      }
+      PWMAudioSetFrequency( BUZZER1 , song[u32songindex] );
+      PWMAudioOn( BUZZER1 );
+      u32songindex++;  
+      
+      
+      /* Red and green blink alternately */
+      if( bblink_alternately )
+      {
+        bblink_alternately = FALSE;
         
         AT91C_BASE_PIOA -> PIO_SODR = PA_15_BLADE_SCK;
         AT91C_BASE_PIOA -> PIO_CODR = PA_14_BLADE_MOSI;
       }
       else
       {
-        btwinkle_alternately = TRUE;
+        bblink_alternately = TRUE;
         
         AT91C_BASE_PIOA -> PIO_CODR = PA_15_BLADE_SCK;
         AT91C_BASE_PIOA -> PIO_SODR = PA_14_BLADE_MOSI;
       }
     }
   }
+  
   else
   {
+    PWMAudioOff( BUZZER1 );
     AT91C_BASE_PIOA -> PIO_CODR = PA_15_BLADE_SCK;
     AT91C_BASE_PIOA -> PIO_CODR = PA_14_BLADE_MOSI;
   }
   
 } /* end UserApp1SM_Idle() */
-    
+
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
