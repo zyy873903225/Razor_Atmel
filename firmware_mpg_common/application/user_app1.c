@@ -305,22 +305,48 @@ static void UserApp1SM_WaitChannelOpen(void)
 static void UserApp1SM_ChannelOpen(void)
 {
   //static u8 au8TestMessage[] = {0, 0, 0, 0, 0xA5, 0, 0, 0};
-  static u8 au8DataContent[3];
-  
+  static u8 au8Heart_rate[3];
+  static u8 au8Cumulative_operating_time[8];
+  static u8 au8Battery_Status[6]={"New", "Good", "Ok", "Low", "Critical", "Invalid"};  
+    
   if( AntReadAppMessageBuffer() )
   {
     /* New message from ANT task: check what it is */
     if(G_eAntApiCurrentMessageClass == ANT_DATA)
     {             
-      /* We got some data: parse it into au8DataContent[] */           
-      au8DataContent[0] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] / 16);
-      au8DataContent[1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] % 16);
-           
+      /* We got some data of Heart rate: parse it into au8DataContent[] */           
+      au8Heart_rate[0] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] / 16);
+      au8Heart_rate[1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] % 16);
+      
       LCDCommand(LCD_CLEAR_CMD);
       LCDMessage(LINE1_START_ADDR, "Heart Rate:");
-      LCDMessage(LINE1_START_ADDR + 11, au8DataContent);
+      LCDMessage(LINE1_START_ADDR + 11, au8Heart_rate);
       LCDMessage(LINE1_START_ADDR + 14, "bpm");
       
+      
+      
+      /* We got some data of cumulative operating time: parse it into au8DataContent[] */  
+      /*if( G_au8AntApiCurrentMessageBytes[0] == 0x01 || G_au8AntApiCurrentMessageBytes[0] == 0x81 )
+      {
+        /*将这个十六进制化为十进制再乘2 就是累积运行时间   单位为秒  
+        最大范围33554432s  约9320小时
+        //au8Cumulative_operating_time[] = G_au8AntApiCurrentMessageBytes[0];
+        /*将累计时间计算为小时
+        /*。。。。。。。。。。。。。。。。。。。。。
+        
+        
+        LCDMessage(LINE2_START_ADDR, "Remaining:");
+        LCDMessage(LINE2_START_ADDR + 10, au8Cumulative_operating_time);
+        LCDMessage(LINE2_START_ADDR + 14, "Hours");
+      }*/
+      
+     /* if( G_au8AntApiCurrentMessageBytes[0] == 0x07 || G_au8AntApiCurrentMessageBytes[0] == 0x87 )
+      {
+        LCDMessage(LINE1_START_ADDR, "Battery Level:");
+        LCDMessage(LINE1_START_ADDR + 14, au8Heart_rate);
+        /*取G_au8AntApiCurrentMessageBytes[3]的4~6位进行对比
+        
+      }*/
     }
   } /* end AntReadData() */
 } /* end UserApp1SM_ChannelOpen() */
@@ -337,7 +363,7 @@ static void UserApp1SM_WaitChannelClose(void)
     LedOff(GREEN);
     LedOn(YELLOW);
 #endif /* MPG1 */
-
+    
 #ifdef MPG2
     LedOn(GREEN0);
     LedOn(RED0);
@@ -353,7 +379,7 @@ static void UserApp1SM_WaitChannelClose(void)
     LedOff(YELLOW);
     LedBlink(RED, LED_4HZ);
 #endif /* MPG1 */
-
+    
 #ifdef MPG2
     LedBlink(RED0, LED_4HZ);
     LedOff(GREEN0);
@@ -361,7 +387,7 @@ static void UserApp1SM_WaitChannelClose(void)
     
     UserApp1_StateMachine = UserApp1SM_Error;
   }
-    
+  
 } /* end UserApp1SM_WaitChannelClose() */
 
 
@@ -369,7 +395,7 @@ static void UserApp1SM_WaitChannelClose(void)
 /* Handle an error */
 static void UserApp1SM_Error(void)          
 {
-
+  
 } /* end UserApp1SM_Error() */
 
 
