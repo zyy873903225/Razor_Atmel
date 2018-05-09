@@ -304,10 +304,10 @@ static void UserApp1SM_WaitChannelOpen(void)
 /* Channel is open, so monitor data */
 static void UserApp1SM_ChannelOpen(void)
 {
-  static u8 u8answer=0;
+  static u32 u32answer=0;
   static u8 au8Heart_rate[3];
   static u8 au8Cumulative_operating_time[8];
-  static u8 au8Battery_Status[6]={"New", "Good", "Ok", "Low", "Critical", "Invalid"};  
+  //static u8 au8Battery_Status[6] = {"New", "Good", "Ok", "Low", "Critical", "Invalid"};  
   
   if( AntReadAppMessageBuffer() )
   {
@@ -318,8 +318,8 @@ static void UserApp1SM_ChannelOpen(void)
       // au8Heart_rate[0] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] / 16);
       // au8Heart_rate[1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] % 16);
       
-      u8answer = HexToDec( G_au8AntApiCurrentMessageBytes[7] );
-      au8Heart_rate = 
+      u32answer = HexToDec( G_au8AntApiCurrentMessageBytes[7] );
+      NumberToAscii(u32answer,au8Heart_rate);
       
       LCDCommand(LCD_CLEAR_CMD);
       LCDMessage(LINE1_START_ADDR, "Heart Rate:");
