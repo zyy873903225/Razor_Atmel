@@ -309,15 +309,14 @@ static void UserApp1SM_ChannelOpen(void)
   
   if( AntReadAppMessageBuffer() )
   {
-     /* New message from ANT task: check what it is */
+    /* New message from ANT task: check what it is */
     if(G_eAntApiCurrentMessageClass == ANT_DATA)
-    {     
-      
-      /* We got some data: parse it into au8DataContent[] */     
-      au8DataContent[0] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] / 16 / 16);
-      au8DataContent[1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] / 16 % 16);
-      au8DataContent[2] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] % 16);
-      
+    {             
+      /* We got some data: parse it into au8DataContent[] */           
+      au8DataContent[0] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] / 16);
+      au8DataContent[1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] % 16);
+           
+      LCDCommand(LCD_CLEAR_CMD);
       LCDMessage(LINE1_START_ADDR, "Heart Rate:");
       LCDMessage(LINE1_START_ADDR + 11, au8DataContent);
       LCDMessage(LINE1_START_ADDR + 14, "bpm");
