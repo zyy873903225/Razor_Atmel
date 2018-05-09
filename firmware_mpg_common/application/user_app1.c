@@ -304,19 +304,22 @@ static void UserApp1SM_WaitChannelOpen(void)
 /* Channel is open, so monitor data */
 static void UserApp1SM_ChannelOpen(void)
 {
-  //static u8 au8TestMessage[] = {0, 0, 0, 0, 0xA5, 0, 0, 0};
+  static u8 u8answer=0;
   static u8 au8Heart_rate[3];
   static u8 au8Cumulative_operating_time[8];
   static u8 au8Battery_Status[6]={"New", "Good", "Ok", "Low", "Critical", "Invalid"};  
-    
+  
   if( AntReadAppMessageBuffer() )
   {
     /* New message from ANT task: check what it is */
-    if(G_eAntApiCurrentMessageClass == ANT_DATA)
+    if( G_eAntApiCurrentMessageClass == ANT_DATA )
     {             
       /* We got some data of Heart rate: parse it into au8DataContent[] */           
-      au8Heart_rate[0] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] / 16);
-      au8Heart_rate[1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] % 16);
+      // au8Heart_rate[0] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] / 16);
+      // au8Heart_rate[1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[7] % 16);
+      
+      u8answer = HexToDec( G_au8AntApiCurrentMessageBytes[7] );
+      au8Heart_rate = 
       
       LCDCommand(LCD_CLEAR_CMD);
       LCDMessage(LINE1_START_ADDR, "Heart Rate:");
@@ -328,7 +331,7 @@ static void UserApp1SM_ChannelOpen(void)
       /* We got some data of cumulative operating time: parse it into au8DataContent[] */  
       /*if( G_au8AntApiCurrentMessageBytes[0] == 0x01 || G_au8AntApiCurrentMessageBytes[0] == 0x81 )
       {
-        /*将这个十六进制化为十进制再乘2 就是累积运行时间   单位为秒  
+      /*将这个十六进制化为十进制再乘2 就是累积运行时间   单位为秒  
         最大范围33554432s  约9320小时
         //au8Cumulative_operating_time[] = G_au8AntApiCurrentMessageBytes[0];
         /*将累计时间计算为小时

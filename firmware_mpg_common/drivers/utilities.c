@@ -338,6 +338,45 @@ bool SearchString(u8* pu8TargetString_, u8* pu8MatchString_)
 /*--------------------------------------------------------------------------------------------------------------------*/
 
 
+/*-----------------------------------------------------------------------------/
+Function: HexToDec*/
+u8 getIndexOfSigns(u8 u8Char_)  
+{  
+    if(u8Char_ >= '0' && u8Char_ <= '9')  
+    {  
+        return u8Char_ - '0';  
+    }  
+    if(u8Char_ >= 'A' && u8Char_ <='F')   
+    {  
+        return u8Char_ - 'A' + 10;  
+    }  
+    if(u8Char_ >= 'a' && u8Char_ <= 'f')  
+    {  
+        return u8Char_ - 'a' + 10;  
+    }  
+ 
+}   /* end getIndexOfSigns */
+
+
+/*-----------------------------------------------------------------------------/
+Function: HexToDec*/
+u8 HexToDec(u8 u8Char_)
+{ 
+  u8 u8Char_;    
+  u8 u8store=0;   // store the result
+  u8 u8Hex=16;        // Hex
+  u8 n=1;        // 位权
+  
+  while( u8Char_ != 0 )  
+  {
+    u8store += getIndexOfSigns(he%10)*n;  // 取出各位位码值，并乘以对应的位权值
+    u8Char_ /= 10;   // 去掉16进制数的最低位，次低位变为最低位
+    n *= u8Hex;     // 位权乘以16
+  }
+  
+  return(u8store);
+  
+} /* end HexToDec */
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/

@@ -54,7 +54,8 @@ u8 HexToASCIICharLower(u8 u8Char_);
 u8 NumberToAscii(u32 u32Number_, u8* pu8AsciiString_);
 bool SearchString(u8* pu8TargetString_, u8* pu8MatchString_);
 
-
+u8 getIndexOfSigns(u8 u8Char_);
+u8 HexToDec(u8 u8Char_);
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Protected functions */
 /*--------------------------------------------------------------------------------------------------------------------*/
