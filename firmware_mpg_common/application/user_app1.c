@@ -304,13 +304,22 @@ static void UserApp1SM_WaitChannelOpen(void)
 /* Channel is open, so monitor data */
 static void UserApp1SM_ChannelOpen(void)
 {
-  static u8 au8Heart_rate[3];
-  static u8 au8Cumulative_operating_time[8];
-  static u8 au8Battery_Status[8] = "Invalid";
+  static u8 u8MAX_Heart_rate                      =0;
+  static u8 u8MIN_Heart_rate                      =255;
+  
+  static u8 au8Current_Heart_rate[3];
+  static u8 au8MAX_Heart_rate[3];
+  static u8 au8MIN_Heart_rate[3];
   static u8 au8Battery_level[3];
-  static bool bdisplay_Heart_rate = TRUE;
-  static bool bdisplay_Cumulative_operating_time = FALSE;
-  static bool bdisplay_Battery_level = FALSE;
+  static u8 au8Cumulative_operating_time[8];
+  static u8 au8Battery_Status[8]                  = "Invalid";
+  
+  static bool bdisplay_alarm1                     = FALSE;
+  static bool bdisplay_alarm2                     = FALSE;
+  static bool bBuzzer_alarm                       = FALSE;
+  static bool bdisplay_Heart_rate                 = TRUE;
+  static bool bdisplay_Cumulative_operating_time  = FALSE;
+  static bool bdisplay_Battery_level              = FALSE;
   
   static u8 au8askfor_Battery_level[]             = {0x46, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x07, 0x01};
   static u8 au8askfor_Cumulative_operating_time[] = {0x46, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x01, 0x01};
@@ -320,15 +329,58 @@ static void UserApp1SM_ChannelOpen(void)
     /* New message from ANT task: check what it is */
     if( G_eAntApiCurrentMessageClass == ANT_DATA )
     {        
+      /* Record the maximum and minimum values of heart rate */     
+      if( G_au8AntApiCurrentMessageBytes[7] >= u8MAX_Heart_rate )
+      {
+        u8MAX_Heart_rate = G_au8AntApiCurrentMessageBytes[7];
+      }
+      if( G_au8AntApiCurrentMessageBytes[7] <= u8MIN_Heart_rate )
+      {
+        u8MIN_Heart_rate = G_au8AntApiCurrentMessageBytes[7];
+      }
+      
       /* Convert the value of Heart Rate into an ASCII string. */
-      NumberToAscii(G_au8AntApiCurrentMessageBytes[7],au8Heart_rate);
+      NumberToAscii(G_au8AntApiCurrentMessageBytes[7],au8Current_Heart_rate);
+      NumberToAscii(u8MAX_Heart_rate,au8MAX_Heart_rate);
+      NumberToAscii(u8MIN_Heart_rate,au8MIN_Heart_rate);
       
       if( bdisplay_Heart_rate )
       {
         LCDCommand(LCD_CLEAR_CMD);
         LCDMessage(LINE1_START_ADDR, "Heart Rate:");
-        LCDMessage(LINE1_START_ADDR + 11, au8Heart_rate);
+        LCDMessage(LINE1_START_ADDR + 11, au8Current_Heart_rate);
         LCDMessage(LINE1_START_ADDR + 14, "bpm");
+        
+        if( bdisplay_alarm1 )
+        {
+          LCDMessage(LINE2_START_ADDR, "Heart rate is low!");
+        }
+        else if( bdisplay_alarm2 )
+        {
+          LCDMessage(LINE2_START_ADDR, "Heart rate is high!");
+        }
+        else
+        {
+          LCDMessage(LINE2_START_ADDR, "MAX:");
+          LCDMessage(LINE2_START_ADDR + 4 , au8MAX_Heart_rate);
+          LCDMessage(LINE2_START_ADDR + 13, "MIN:");
+          LCDMessage(LINE2_START_ADDR + 17, au8MIN_Heart_rate);
+        }
+      }
+      
+      /* it will alarm when the heart rate is less than 40 or more than 160*/
+      if( G_au8AntApiCurrentMessageBytes[7] > 160 )
+      {
+        bdisplay_alarm1 = TRUE;
+      }
+      else if( G_au8AntApiCurrentMessageBytes[7] < 40 )
+      {
+        bdisplay_alarm2 = TRUE;
+      }
+      else
+      {
+        bdisplay_alarm1 = FALSE;
+        bdisplay_alarm2 = FALSE;
       }
       
       
