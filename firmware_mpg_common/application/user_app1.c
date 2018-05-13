@@ -307,6 +307,7 @@ static void UserApp1SM_ChannelOpen(void)
   static u8 au8Heart_rate[3];
   static u8 au8Cumulative_operating_time[8];
   static u8 au8Battery_Status[8] = "Invalid";
+  static u8 au8Battery_level[3];
   static bool bdispaly_Heart_rate = TRUE;
   
   if( AntReadAppMessageBuffer() )
@@ -340,7 +341,8 @@ static void UserApp1SM_ChannelOpen(void)
       /* We got some data about battery status */
       if( G_au8AntApiCurrentMessageBytes[0] == 0x07 || G_au8AntApiCurrentMessageBytes[0] == 0x87 )
       {
-        
+        /* Convert the value of battery level into an ASCII string. */
+        NumberToAscii(G_au8AntApiCurrentMessageBytes[1], au8Battery_level);
         
         if( ( G_au8AntApiCurrentMessageBytes[3] >= 0x10 && G_au8AntApiCurrentMessageBytes[3] <= 0x1F ) || ( G_au8AntApiCurrentMessageBytes[3] >= 0x90 && G_au8AntApiCurrentMessageBytes[3] <= 0x9F ) )
         {
@@ -404,8 +406,10 @@ static void UserApp1SM_ChannelOpen(void)
     LCDCommand(LCD_CLEAR_CMD);
     LCDMessage(LINE1_START_ADDR, "Battery Level:");
     LCDMessage(LINE2_START_ADDR, au8Battery_Status);  
+    LCDMessage(LINE2_START_ADDR+13, au8Battery_level);  
+    LCDMessage(LINE2_START_ADDR+16, "%");  
     
-    bdispaly_Heart_rate = FALSE;
+    bdispaly_Heart_rate = FALSE; 
   }
   
   
