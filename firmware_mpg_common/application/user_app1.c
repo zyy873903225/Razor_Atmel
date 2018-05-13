@@ -308,7 +308,12 @@ static void UserApp1SM_ChannelOpen(void)
   static u8 au8Cumulative_operating_time[8];
   static u8 au8Battery_Status[8] = "Invalid";
   static u8 au8Battery_level[3];
-  static bool bdispaly_Heart_rate = TRUE;
+  static bool bdisplay_Heart_rate = TRUE;
+  static bool bdisplay_Cumulative_operating_time = FALSE;
+  static bool bdisplay_Battery_level = FALSE;
+  
+  static u8 au8askfor_Battery_level[]             = {0x46, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x07, 0x01};
+  static u8 au8askfor_Cumulative_operating_time[] = {0x46, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x01, 0x01};
   
   if( AntReadAppMessageBuffer() )
   {
@@ -318,13 +323,14 @@ static void UserApp1SM_ChannelOpen(void)
       /* Convert the value of Heart Rate into an ASCII string. */
       NumberToAscii(G_au8AntApiCurrentMessageBytes[7],au8Heart_rate);
       
-      if( bdispaly_Heart_rate )
+      if( bdisplay_Heart_rate )
       {
-      LCDCommand(LCD_CLEAR_CMD);
-      LCDMessage(LINE1_START_ADDR, "Heart Rate:");
-      LCDMessage(LINE1_START_ADDR + 11, au8Heart_rate);
-      LCDMessage(LINE1_START_ADDR + 14, "bpm");
+        LCDCommand(LCD_CLEAR_CMD);
+        LCDMessage(LINE1_START_ADDR, "Heart Rate:");
+        LCDMessage(LINE1_START_ADDR + 11, au8Heart_rate);
+        LCDMessage(LINE1_START_ADDR + 14, "bpm");
       }
+      
       
       /* We got some data about cumulative operating time */  
       if( G_au8AntApiCurrentMessageBytes[0] == 0x01 || G_au8AntApiCurrentMessageBytes[0] == 0x81 )
@@ -336,6 +342,14 @@ static void UserApp1SM_ChannelOpen(void)
         /* Convert the value of cumulative operating time into an ASCII string. */
         NumberToAscii(G_au8AntApiCurrentMessageBytes[1], au8Cumulative_operating_time);
         
+      }
+      
+      if( bdisplay_Cumulative_operating_time )
+      {
+        LCDCommand(LCD_CLEAR_CMD);
+        LCDMessage(LINE1_START_ADDR, "You have use it:");
+        LCDMessage(LINE2_START_ADDR, au8Cumulative_operating_time);
+        LCDMessage(LINE2_START_ADDR + 8, "Seconds");
       }
       
       /* We got some data about battery status */
@@ -367,8 +381,16 @@ static void UserApp1SM_ChannelOpen(void)
         if( ( G_au8AntApiCurrentMessageBytes[3] >= 0x50 && G_au8AntApiCurrentMessageBytes[3] <= 0x5F ) || ( G_au8AntApiCurrentMessageBytes[3] >= 0xD0 && G_au8AntApiCurrentMessageBytes[3] <= 0xDF ) )
         {
           strcpy(au8Battery_Status,"Critical");
-        }
-       
+        }       
+      }
+      
+      if( bdisplay_Battery_level )
+      {
+        LCDCommand(LCD_CLEAR_CMD);
+        LCDMessage(LINE1_START_ADDR, "Battery Level:");
+        LCDMessage(LINE2_START_ADDR, au8Battery_Status);  
+        LCDMessage(LINE2_START_ADDR+13, au8Battery_level);  
+        LCDMessage(LINE2_START_ADDR+16, "%");  
       }
       
     }
@@ -380,21 +402,22 @@ static void UserApp1SM_ChannelOpen(void)
     /* Got the button, so complete one-time actions before next state */
     ButtonAcknowledge(BUTTON0);
     
-   bdispaly_Heart_rate = TRUE;
+   bdisplay_Heart_rate = TRUE;
+   bdisplay_Cumulative_operating_time = FALSE;
+   bdisplay_Battery_level = FALSE;
   }
   
-  /* Press button 1 to display the battery level */
+  /* Press button 1 to display the battery level */ 
   if(WasButtonPressed(BUTTON1))
   {
     /* Got the button, so complete one-time actions before next state */
     ButtonAcknowledge(BUTTON1);
     
-    LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, "You have use it:");
-    LCDMessage(LINE2_START_ADDR, au8Cumulative_operating_time);
-    LCDMessage(LINE2_START_ADDR + 8, "Seconds");
+    AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8askfor_Cumulative_operating_time);
     
-    bdispaly_Heart_rate = FALSE;
+    bdisplay_Heart_rate = FALSE;
+    bdisplay_Cumulative_operating_time = TRUE;
+    bdisplay_Battery_level = FALSE;
   }
   
   
@@ -403,13 +426,11 @@ static void UserApp1SM_ChannelOpen(void)
     /* Got the button, so complete one-time actions before next state */
     ButtonAcknowledge(BUTTON2);
     
-    LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, "Battery Level:");
-    LCDMessage(LINE2_START_ADDR, au8Battery_Status);  
-    LCDMessage(LINE2_START_ADDR+13, au8Battery_level);  
-    LCDMessage(LINE2_START_ADDR+16, "%");  
-    
-    bdispaly_Heart_rate = FALSE; 
+    AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8askfor_Battery_level);
+     
+    bdisplay_Heart_rate = FALSE; 
+    bdisplay_Cumulative_operating_time = FALSE;
+    bdisplay_Battery_level = TRUE;
   }
   
   
