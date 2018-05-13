@@ -234,6 +234,11 @@ static void UserApp1SM_WaitChannelAssign(void)
 /* Wait for a message to be queued */
 static void UserApp1SM_Idle(void)
 {
+  static u8 u8MusicNoteIndex = 0;
+  static u8 u8MusicTime = 0;
+  static bool bMusic = FALSE;
+  static u16 u16MusicNote[7] = {C6,D6,E6,F6,G6,A6,B6}; 
+  
   /* Look for BUTTON 0 to open channel */
   if(WasButtonPressed(BUTTON0))
   {
@@ -242,6 +247,8 @@ static void UserApp1SM_Idle(void)
     
     /* Queue open channel and change LED0 from yellow to blinking green to indicate channel is opening */
     AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
+    
+    bMusic = TRUE;
 
 #ifdef MPG1
     LedOff(YELLOW);
@@ -253,13 +260,36 @@ static void UserApp1SM_Idle(void)
     LedBlink(GREEN0, LED_2HZ);
 #endif /* MPG2 */
     
-    /* Set timer and advance states */
+    /* Set timer and advance states 
     UserApp1_u32Timeout = G_u32SystemTime1ms;
-    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
+    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;*/
   }
+  
+  if (bMusic)
+  {
+    u8MusicTime++;
     
+    /*Delay of 10ms*/
+    if (u8MusicTime == 100)
+    {
+      u8MusicTime = 0;
+      PWMAudioSetFrequency(BUZZER1,u16MusicNote[u8MusicNoteIndex]);
+      u8MusicNoteIndex++;
+      PWMAudioOn(BUZZER1);
+      if (u8MusicNoteIndex > 6)
+      {
+        u8MusicNoteIndex = 0;
+        bMusic=FALSE;
+        PWMAudioOff(BUZZER1);
+        
+        /* Set timer and advance states */
+        UserApp1_u32Timeout = G_u32SystemTime1ms;
+        UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
+      }
+    }
+  }
 } /* end UserApp1SM_Idle() */
-     
+
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for channel to open */
@@ -372,11 +402,11 @@ static void UserApp1SM_ChannelOpen(void)
       
       
       /* it will alarm when the heart rate is less than 40 or more than 160*/
-      if( G_au8AntApiCurrentMessageBytes[7] > 120 )
+      if( G_au8AntApiCurrentMessageBytes[7] > 160 )
       {
         bdisplay_alarm1 = TRUE;
       }
-      else if( G_au8AntApiCurrentMessageBytes[7] < 80 )
+      else if( G_au8AntApiCurrentMessageBytes[7] < 40 )
       {
         bdisplay_alarm2 = TRUE;
       }
