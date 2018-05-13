@@ -97,8 +97,8 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
-  u8 au8WelcomeMessage[] = "ANT SLAVE DEMO";
-  u8 au8Instructions[] = "B0 toggles radio";
+  u8 au8WelcomeMessage[] = "     Press B0 to";
+  u8 au8Instructions[] = "      power on";
   AntAssignChannelInfoType sAntSetupData;
   
   /* Clear screen and place start messages */
@@ -316,7 +316,7 @@ static void UserApp1SM_ChannelOpen(void)
   
   static bool bdisplay_alarm1                     = FALSE;
   static bool bdisplay_alarm2                     = FALSE;
-  static bool bBuzzer_alarm                       = FALSE;
+  static bool bToggle                             = TRUE;
   static bool bdisplay_Heart_rate                 = TRUE;
   static bool bdisplay_Cumulative_operating_time  = FALSE;
   static bool bdisplay_Battery_level              = FALSE;
@@ -353,11 +353,11 @@ static void UserApp1SM_ChannelOpen(void)
         
         if( bdisplay_alarm1 )
         {
-          LCDMessage(LINE2_START_ADDR, "Heart rate is low!");
+          LCDMessage(LINE2_START_ADDR, "Heart rate is high!");
         }
         else if( bdisplay_alarm2 )
         {
-          LCDMessage(LINE2_START_ADDR, "Heart rate is high!");
+          LCDMessage(LINE2_START_ADDR, "Heart rate is low!");
         }
         else
         {
@@ -368,20 +368,55 @@ static void UserApp1SM_ChannelOpen(void)
         }
       }
       
+      
+      
+      
       /* it will alarm when the heart rate is less than 40 or more than 160*/
-      if( G_au8AntApiCurrentMessageBytes[7] > 160 )
+      if( G_au8AntApiCurrentMessageBytes[7] > 120 )
       {
         bdisplay_alarm1 = TRUE;
       }
-      else if( G_au8AntApiCurrentMessageBytes[7] < 40 )
+      else if( G_au8AntApiCurrentMessageBytes[7] < 80 )
       {
         bdisplay_alarm2 = TRUE;
       }
       else
       {
+        LedPWM(LCD_RED, LED_PWM_100);
+        LedPWM(LCD_GREEN, LED_PWM_100);
+        LedPWM(LCD_BLUE, LED_PWM_100);
+        
+        PWMAudioOff(BUZZER2);
+        
         bdisplay_alarm1 = FALSE;
         bdisplay_alarm2 = FALSE;
+        
       }
+      
+      if( bdisplay_alarm1 || bdisplay_alarm2 )
+      {
+        if( bToggle )
+        {
+          LedPWM(LCD_RED, LED_PWM_100);
+          LedPWM(LCD_GREEN, LED_PWM_0);
+          LedPWM(LCD_BLUE, LED_PWM_0);
+          
+          PWMAudioSetFrequency(BUZZER2, NOTE_A6_SHARP);
+          PWMAudioOn(BUZZER2);
+          bToggle = FALSE;
+        }
+        else
+        {    
+          LedPWM(LCD_RED, LED_PWM_100);
+          LedPWM(LCD_GREEN, LED_PWM_100);
+          LedPWM(LCD_BLUE, LED_PWM_100);
+          
+          PWMAudioSetFrequency(BUZZER2, NOTE_D6_SHARP);
+          bToggle = TRUE;
+        }
+      }
+      
+      
       
       
       /* We got some data about cumulative operating time */  
