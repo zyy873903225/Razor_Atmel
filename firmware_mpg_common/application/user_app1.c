@@ -336,6 +336,8 @@ static void UserApp1SM_ChannelOpen(void)
 {
   static u8 u8MAX_Heart_rate                      =0;
   static u8 u8MIN_Heart_rate                      =255;
+  static u8 u8MusicTime                           =0;
+  static u8 u8MusicNoteIndex                      = 0;
   
   static u8 au8Current_Heart_rate[3];
   static u8 au8MAX_Heart_rate[3];
@@ -343,6 +345,7 @@ static void UserApp1SM_ChannelOpen(void)
   static u8 au8Battery_level[3];
   static u8 au8Cumulative_operating_time[8];
   static u8 au8Battery_Status[8]                  = "Invalid";
+  static u8 au8Heart_rate_trendgram[101];
   
   static bool bdisplay_alarm1                     = FALSE;
   static bool bdisplay_alarm2                     = FALSE;
@@ -350,15 +353,33 @@ static void UserApp1SM_ChannelOpen(void)
   static bool bdisplay_Heart_rate                 = TRUE;
   static bool bdisplay_Cumulative_operating_time  = FALSE;
   static bool bdisplay_Battery_level              = FALSE;
+  static bool bMusic                              = FALSE;
+  static bool bTurn_off_screen                    = FALSE;
   
   static u8 au8askfor_Battery_level[]             = {0x46, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x07, 0x01};
   static u8 au8askfor_Cumulative_operating_time[] = {0x46, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x01, 0x01};
+  static u16 u16MusicNote[7] = {B6,A6,G6,F6,E6,D6,C6};
   
   if( AntReadAppMessageBuffer() )
   {
     /* New message from ANT task: check what it is */
     if( G_eAntApiCurrentMessageClass == ANT_DATA )
     {        
+      /* display heart rate trendgram */  
+      for(u8 i = 0;i<100;i++)
+      {
+        au8Heart_rate_trendgram[i] = ' ';
+      }     
+      
+      for(u8 i = 0;i<( G_au8AntApiCurrentMessageBytes[7] / 2 );i++)
+      {
+        au8Heart_rate_trendgram[i] = '*';
+      }     
+      
+      DebugPrintf(au8Heart_rate_trendgram);
+      DebugLineFeed();
+      
+      
       /* Record the maximum and minimum values of heart rate */     
       if( G_au8AntApiCurrentMessageBytes[7] >= u8MAX_Heart_rate )
       {
@@ -373,6 +394,7 @@ static void UserApp1SM_ChannelOpen(void)
       NumberToAscii(G_au8AntApiCurrentMessageBytes[7],au8Current_Heart_rate);
       NumberToAscii(u8MAX_Heart_rate,au8MAX_Heart_rate);
       NumberToAscii(u8MIN_Heart_rate,au8MIN_Heart_rate);
+      
       
       if( bdisplay_Heart_rate )
       {
@@ -391,15 +413,15 @@ static void UserApp1SM_ChannelOpen(void)
         }
         else
         {
-          LCDMessage(LINE2_START_ADDR, "MAX:");
+          LCDMessage(LINE2_START_ADDR, "MAX:         MIN:");
           LCDMessage(LINE2_START_ADDR + 4 , au8MAX_Heart_rate);
-          LCDMessage(LINE2_START_ADDR + 13, "MIN:");
+          //LCDMessage(LINE2_START_ADDR + 13, "MIN:");
           LCDMessage(LINE2_START_ADDR + 17, au8MIN_Heart_rate);
         }
       }
       
       
-      
+       
       
       /* it will alarm when the heart rate is less than 40 or more than 160*/
       if( G_au8AntApiCurrentMessageBytes[7] > 160 )
@@ -412,14 +434,18 @@ static void UserApp1SM_ChannelOpen(void)
       }
       else
       {
-        LedPWM(LCD_RED, LED_PWM_100);
-        LedPWM(LCD_GREEN, LED_PWM_100);
-        LedPWM(LCD_BLUE, LED_PWM_100);
-        
+        if( !bTurn_off_screen )
+        {
+          LedPWM(LCD_RED, LED_PWM_100);
+          LedPWM(LCD_GREEN, LED_PWM_100);
+          LedPWM(LCD_BLUE, LED_PWM_100);
+        }
+    
         PWMAudioOff(BUZZER2);
         
         bdisplay_alarm1 = FALSE;
         bdisplay_alarm2 = FALSE;
+        
         
       }
       
@@ -434,16 +460,38 @@ static void UserApp1SM_ChannelOpen(void)
           PWMAudioSetFrequency(BUZZER2, NOTE_A6_SHARP);
           PWMAudioOn(BUZZER2);
           bToggle = FALSE;
+          
+          if( bdisplay_alarm1 )
+          {
+            LCDMessage(LINE2_START_ADDR, "Heart rate is high!");
+          }
+          else if( bdisplay_alarm2 )
+          {
+            LCDMessage(LINE2_START_ADDR, "Heart rate is low!");
+          }
         }
         else
         {    
-          LedPWM(LCD_RED, LED_PWM_100);
-          LedPWM(LCD_GREEN, LED_PWM_100);
-          LedPWM(LCD_BLUE, LED_PWM_100);
+          if( !bTurn_off_screen )
+          {
+            LedPWM(LCD_RED, LED_PWM_100);
+            LedPWM(LCD_GREEN, LED_PWM_100);
+            LedPWM(LCD_BLUE, LED_PWM_100);
+          }
+          else
+          {
+            LedPWM(LCD_RED, LED_PWM_0);
+            LedPWM(LCD_GREEN, LED_PWM_0);
+            LedPWM(LCD_BLUE, LED_PWM_0);
+          }
           
           PWMAudioSetFrequency(BUZZER2, NOTE_D6_SHARP);
           bToggle = TRUE;
         }
+      }
+      else if( bTurn_off_screen ) 
+      {       
+        LCDCommand(LCD_CLEAR_CMD);
       }
       
       
@@ -512,6 +560,9 @@ static void UserApp1SM_ChannelOpen(void)
       
     }
   } /* end AntReadData() */
+      
+  
+  
   
   /* Press button 0 to display the value of Heart Rate */
   if(WasButtonPressed(BUTTON0))
@@ -519,9 +570,14 @@ static void UserApp1SM_ChannelOpen(void)
     /* Got the button, so complete one-time actions before next state */
     ButtonAcknowledge(BUTTON0);
     
-   bdisplay_Heart_rate = TRUE;
-   bdisplay_Cumulative_operating_time = FALSE;
-   bdisplay_Battery_level = FALSE;
+    LedPWM(LCD_RED, LED_PWM_100);
+    LedPWM(LCD_GREEN, LED_PWM_100);
+    LedPWM(LCD_BLUE, LED_PWM_100);
+    
+    bdisplay_Heart_rate = TRUE;
+    bdisplay_Cumulative_operating_time = FALSE;
+    bdisplay_Battery_level = FALSE;
+    bTurn_off_screen = FALSE;
   }
   
   /* Press button 1 to display the battery level */ 
@@ -532,9 +588,14 @@ static void UserApp1SM_ChannelOpen(void)
     
     AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8askfor_Cumulative_operating_time);
     
+    LedPWM(LCD_RED, LED_PWM_100);
+    LedPWM(LCD_GREEN, LED_PWM_100);
+    LedPWM(LCD_BLUE, LED_PWM_100);
+    
     bdisplay_Heart_rate = FALSE;
     bdisplay_Cumulative_operating_time = TRUE;
     bdisplay_Battery_level = FALSE;
+    bTurn_off_screen = FALSE;
   }
   
   
@@ -544,13 +605,55 @@ static void UserApp1SM_ChannelOpen(void)
     ButtonAcknowledge(BUTTON2);
     
     AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8askfor_Battery_level);
-     
+    
+    LedPWM(LCD_RED, LED_PWM_100);
+    LedPWM(LCD_GREEN, LED_PWM_100);
+    LedPWM(LCD_BLUE, LED_PWM_100);
+    
     bdisplay_Heart_rate = FALSE; 
     bdisplay_Cumulative_operating_time = FALSE;
     bdisplay_Battery_level = TRUE;
+    bTurn_off_screen = FALSE;
+  }
+  
+  if(WasButtonPressed(BUTTON3))
+  {
+    /* Got the button, so complete one-time actions before next state */
+    ButtonAcknowledge(BUTTON3);
+    
+    LCDCommand(LCD_CLEAR_CMD);
+    LedPWM(LCD_RED, LED_PWM_0);
+    LedPWM(LCD_GREEN, LED_PWM_0);
+    LedPWM(LCD_BLUE, LED_PWM_0);
+    
+    bdisplay_Heart_rate = FALSE; 
+    bdisplay_Cumulative_operating_time = FALSE;
+    bdisplay_Battery_level = FALSE;
+    bMusic = TRUE;
+    bTurn_off_screen  = TRUE;
   }
   
   
+  if (bMusic)
+  {
+    u8MusicTime++;
+    
+    /*Delay of 10ms*/
+    if (u8MusicTime == 100)
+    {
+      u8MusicTime = 0;
+      PWMAudioSetFrequency(BUZZER1,u16MusicNote[u8MusicNoteIndex]);
+      u8MusicNoteIndex++;
+      PWMAudioOn(BUZZER1);
+      if (u8MusicNoteIndex > 6)
+      {
+        u8MusicNoteIndex = 0;
+        bMusic=FALSE;
+        PWMAudioOff(BUZZER1);
+      }
+    }
+  }
+
 } /* end UserApp1SM_ChannelOpen() */
 
 
