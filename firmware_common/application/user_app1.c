@@ -87,7 +87,7 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+  LedOn(GREEN);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,7 +136,159 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u8 u8model = 0;
+  static u8 u8volume =0;
+  static u16 u16LCD_delay = 0;
+  static u16 u16LED_delay = 0; 
+  static u16 u16ADC_current_voltage = 0;
+  static bool bled_red = FALSE;
+     
+  u16LCD_delay++;
+  
+  /*Turn up the volume*/
+  if( WasButtonPressed(BUTTON0) )
+  {
+    /* Be sure to acknowledge the button press */
+    ButtonAcknowledge(BUTTON0);
+    bled_red = TRUE;
+    LedOff(WHITE);
+    
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /*CS  低电平有效 */
+    AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /*U/D 高电平*/
+    
+    for(u8 i=0;i<15;i++)
+    {
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;    /*INC 置为高电平*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;   /*INC 下降沿有效*/
+    }    
+  }
+  
+  /*Turn down the volume*/
+  if( WasButtonPressed(BUTTON1) )
+  {
+    /* Be sure to acknowledge the button press */
+    ButtonAcknowledge(BUTTON1);
+    bled_red = TRUE;
+    LedOff(WHITE);
+    
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /*CS  低电平有效 */
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /*U/D 低电平*/
+    
+    for(u8 i=0;i<15;i++)
+    {
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;    /*INC 置为高电平*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;   /*INC 下降沿有效*/
+    }    
+  }
+  
+  if( WasButtonPressed(BUTTON2) )
+  {
+    /* Be sure to acknowledge the button press */
+    ButtonAcknowledge(BUTTON2);    
+    LedOn(WHITE);
+    
+    AT91C_BASE_PIOA -> PIO_SODR |= PA_13_BLADE_MISO; /*4053C*/
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*4053B*/
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;   /*4053A*/
+    
+    Adc12StartConversion(ADC12_CH2);
+    u16ADC_current_voltage = AT91C_BASE_ADC12B->ADC12B_CDR[ADC12_CH2];
+    
+    u8volume = (u16ADC_current_voltage*100)/0xFFF;
 
+  }
+  
+  /*Change the model: Moblie / MIC / Mute*/
+  if( WasButtonPressed(BUTTON3) )
+  {
+    /* Be sure to acknowledge the button press */
+    ButtonAcknowledge(BUTTON3);
+    bled_red = TRUE;
+    LedOff(WHITE);
+    
+    u8model++;
+    if( u8model == 3 )
+    {
+      u8model = 0;
+    }
+    
+    /*Moblie 0,0,0*/
+    if( u8model == 0 )
+    {
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_13_BLADE_MISO; /*4053C*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*4053B*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;   /*4053A*/
+      
+      LedOn(GREEN);
+      LedOff(BLUE);
+      LedOff(PURPLE);
+    }
+    
+    /*MIC 0,0,1*/
+    if( u8model == 1 )
+    {
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_13_BLADE_MISO; /*4053C*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*4053B*/
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_16_BLADE_CS;   /*4053A*/
+      
+      LedOff(GREEN);
+      LedOn(BLUE);
+      LedOff(PURPLE);
+    }
+    
+    /*Mute 0,1,0*/
+    if( u8model == 2 )
+    {
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_13_BLADE_MISO; /*4053C*/
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /*4053B*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;   /*4053A*/
+      
+      LedOff(GREEN);
+      LedOff(BLUE);
+      LedOn(PURPLE);
+    }
+  }
+  
+  /*Display volume level and channel number*/
+  if( u16LCD_delay == 300 )
+  {
+    u16LCD_delay = 0;
+    
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, "Volume level:");
+    LCDMessage(LINE2_START_ADDR, "Channel:");
+    
+    LCDMessage(LINE1_START_ADDR+13, u8volume);
+    
+    if( u8model == 0 )
+    {
+      LCDMessage(LINE2_START_ADDR+9, "Moblie");
+    }
+    
+    if( u8model == 1 )
+    {
+      LCDMessage(LINE2_START_ADDR+9, "MIC");
+    }
+    
+    if( u8model == 2 )
+    {
+      LCDMessage(LINE2_START_ADDR+9, "Mute");
+    }
+  }
+  
+  /*Led_Red blink*/
+  if( bled_red )
+  {
+    u16LED_delay++;
+    LedOn(RED);
+    
+    if( u16LED_delay ==200)
+    {
+      bled_red = FALSE;
+      u16LED_delay = 0;
+      LedOff(RED);
+    }
+  }
 } /* end UserApp1SM_Idle() */
     
 
