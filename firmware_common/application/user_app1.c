@@ -147,6 +147,7 @@ static void UserApp1SM_Idle(void)
      
   u16LCD_delay++;
   
+  
   /*Turn up the volume*/
   if( WasButtonPressed(BUTTON0) )
   {
@@ -155,13 +156,13 @@ static void UserApp1SM_Idle(void)
     bled_red = TRUE;
     LedOff(WHITE);
     
-    AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /*CS  低电平有效 */
-    AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /*U/D 高电平*/
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;  /*CS  低电平有效 */
+    AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /*U/D 高电平*/
     
     for(u8 i=0;i<15;i++)
     {
-      AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;    /*INC 置为高电平*/
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;   /*INC 下降沿有效*/
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_13_BLADE_MISO;    /*INC 置为高电平*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_13_BLADE_MISO;   /*INC 下降沿有效*/
     }
   }
   
@@ -173,13 +174,13 @@ static void UserApp1SM_Idle(void)
     bled_red = TRUE;
     LedOff(WHITE);
     
-    AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /*CS  低电平有效 */
-    AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /*U/D 低电平*/
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;  /*CS  低电平有效 */
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*U/D 低电平*/
     
     for(u8 i=0;i<15;i++)
     {
-      AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;    /*INC 置为高电平*/
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;   /*INC 下降沿有效*/
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_13_BLADE_MISO;    /*INC 置为高电平*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_13_BLADE_MISO;   /*INC 下降沿有效*/
     }    
   }
   
@@ -190,16 +191,15 @@ static void UserApp1SM_Idle(void)
     bled_red = TRUE;
     bdisplay_tap = TRUE;
     LedOn(WHITE);
+    AT91C_BASE_PIOB -> PIO_SODR |= PB_04_BLADE_AN1;  /*RE高电平*/
     
-    AT91C_BASE_PIOA -> PIO_SODR |= PA_13_BLADE_MISO; /*4053C*/
-    AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*4053B*/
-    AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;   /*4053A*/
-     
-    while( !Adc12StartConversion(ADC12_CH2) )
-    {
-      u16ADC_current_voltage = AT91C_BASE_ADC12B->ADC12B_CDR[ADC12_CH2];
-      NumberToAscii( u16ADC_current_voltage/41, au8volume );
-    }
+    AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI; /*4053C*/
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /*4053B*/
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;   /*4053A*/
+    
+    while( !Adc12StartConversion(ADC12_CH2) );
+    u16ADC_current_voltage = AT91C_BASE_ADC12B->ADC12B_CDR[ADC12_CH2];
+    NumberToAscii( u16ADC_current_voltage/40, au8volume );
     
   }
   
@@ -212,6 +212,8 @@ static void UserApp1SM_Idle(void)
     bdisplay_tap = FALSE;
     LedOff(WHITE);
     
+    AT91C_BASE_PIOB -> PIO_CODR |= PB_04_BLADE_AN1; /*RE低电平*/
+    
     u8model++;
     if( u8model == 3 )
     {
@@ -221,9 +223,9 @@ static void UserApp1SM_Idle(void)
     /*Moblie 0,0,0*/
     if( u8model == 0 )
     {
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_13_BLADE_MISO; /*4053C*/
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*4053B*/
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;   /*4053A*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI; /*4053C*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /*4053B*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;   /*4053A*/
       
       LedOn(GREEN);
       LedOff(BLUE);
@@ -233,9 +235,9 @@ static void UserApp1SM_Idle(void)
     /*MIC 0,0,1*/
     if( u8model == 1 )
     {
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_13_BLADE_MISO; /*4053C*/
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*4053B*/
-      AT91C_BASE_PIOA -> PIO_SODR |= PA_16_BLADE_CS;   /*4053A*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI; /*4053C*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /*4053B*/
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;   /*4053A*/
       
       LedOff(GREEN);
       LedOn(BLUE);
@@ -245,9 +247,9 @@ static void UserApp1SM_Idle(void)
     /*Mute 0,1,0*/
     if( u8model == 2 )
     {
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_13_BLADE_MISO; /*4053C*/
-      AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /*4053B*/
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;   /*4053A*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI; /*4053C*/
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /*4053B*/
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;   /*4053A*/
       
       LedOff(GREEN);
       LedOff(BLUE);
@@ -263,8 +265,9 @@ static void UserApp1SM_Idle(void)
     LCDCommand(LCD_CLEAR_CMD);
     
     if( bdisplay_tap )
-    {
+    {     
       LCDMessage(LINE1_START_ADDR, "Tap location:");
+      LCDMessage(LINE1_START_ADDR+13, au8volume);
     }
     else  
     {   
@@ -296,13 +299,14 @@ static void UserApp1SM_Idle(void)
     u16LED_delay++;
     LedOn(RED);
     
-    if( u16LED_delay ==200)
+    if( u16LED_delay ==100)
     {
       bled_red = FALSE;
       u16LED_delay = 0;
       LedOff(RED);
     }
   }
+  
 } /* end UserApp1SM_Idle() */
     
 
