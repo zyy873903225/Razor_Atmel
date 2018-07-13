@@ -544,7 +544,7 @@ counter must be set at 1280. */
     07 [1] PB_07_TP60 PIO control enabled
     06 [0] PB_06_TP58 PIO control not enabled
     05 [1] PB_05_TP56 PIO control enabled
-    04 [0] PB_04_BLADE_AN1 PIO control not enabled
+    04 [1] PB_04_BLADE_AN1 PIO control not enabled
 
     03 [0] PB_03_BLADE_AN0 PIO control not enabled
     02 [1] PB_02_BUTTON3 PIO control enabled
@@ -635,7 +635,7 @@ counter must be set at 1280. */
     07 [0] PB_07_TP60 not controlled by peripheral
     06 [1] PB_06_TP58 controlled by peripheral
     05 [0] PB_05_TP56 not controlled by peripheral
-    04 [1] PB_04_BLADE_AN1 controlled by peripheral
+    04 [0] PB_04_BLADE_AN1 controlled by peripheral
 
     03 [1] PB_03_BLADE_AN0 controlled by peripheral
     02 [0] PB_02_BUTTON3 not controlled by peripheral

@@ -138,10 +138,12 @@ static void UserApp1SM_Idle(void)
 {
   static u8 u8model = 0;
   static u8 u8volume =0;
+  static u8 au8volume[] = "0";
   static u16 u16LCD_delay = 0;
   static u16 u16LED_delay = 0; 
   static u16 u16ADC_current_voltage = 0;
   static bool bled_red = FALSE;
+  static bool bdisplay_tap = FALSE;
      
   u16LCD_delay++;
   
@@ -160,7 +162,7 @@ static void UserApp1SM_Idle(void)
     {
       AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;    /*INC 置为高电平*/
       AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;   /*INC 下降沿有效*/
-    }    
+    }
   }
   
   /*Turn down the volume*/
@@ -185,17 +187,20 @@ static void UserApp1SM_Idle(void)
   {
     /* Be sure to acknowledge the button press */
     ButtonAcknowledge(BUTTON2);    
+    bled_red = TRUE;
+    bdisplay_tap = TRUE;
     LedOn(WHITE);
     
     AT91C_BASE_PIOA -> PIO_SODR |= PA_13_BLADE_MISO; /*4053C*/
     AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*4053B*/
     AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;   /*4053A*/
+     
+    while( !Adc12StartConversion(ADC12_CH2) )
+    {
+      u16ADC_current_voltage = AT91C_BASE_ADC12B->ADC12B_CDR[ADC12_CH2];
+      NumberToAscii( u16ADC_current_voltage/41, au8volume );
+    }
     
-    Adc12StartConversion(ADC12_CH2);
-    u16ADC_current_voltage = AT91C_BASE_ADC12B->ADC12B_CDR[ADC12_CH2];
-    
-    u8volume = (u16ADC_current_voltage*100)/0xFFF;
-
   }
   
   /*Change the model: Moblie / MIC / Mute*/
@@ -204,6 +209,7 @@ static void UserApp1SM_Idle(void)
     /* Be sure to acknowledge the button press */
     ButtonAcknowledge(BUTTON3);
     bled_red = TRUE;
+    bdisplay_tap = FALSE;
     LedOff(WHITE);
     
     u8model++;
@@ -255,24 +261,32 @@ static void UserApp1SM_Idle(void)
     u16LCD_delay = 0;
     
     LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, "Volume level:");
-    LCDMessage(LINE2_START_ADDR, "Channel:");
     
-    LCDMessage(LINE1_START_ADDR+13, u8volume);
-    
-    if( u8model == 0 )
+    if( bdisplay_tap )
     {
-      LCDMessage(LINE2_START_ADDR+9, "Moblie");
+      LCDMessage(LINE1_START_ADDR, "Tap location:");
     }
-    
-    if( u8model == 1 )
-    {
-      LCDMessage(LINE2_START_ADDR+9, "MIC");
-    }
-    
-    if( u8model == 2 )
-    {
-      LCDMessage(LINE2_START_ADDR+9, "Mute");
+    else  
+    {   
+      LCDMessage(LINE1_START_ADDR, "Volume level:   %");
+      LCDMessage(LINE2_START_ADDR, "Channel:");
+      
+      LCDMessage(LINE1_START_ADDR+13, au8volume);
+      
+      if( u8model == 0 )
+      {
+        LCDMessage(LINE2_START_ADDR+9, "Moblie");
+      }
+      
+      if( u8model == 1 )
+      {
+        LCDMessage(LINE2_START_ADDR+9, "MIC");
+      }
+      
+      if( u8model == 2 )
+      {
+        LCDMessage(LINE2_START_ADDR+9, "Mute");
+      }
     }
   }
   
