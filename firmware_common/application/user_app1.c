@@ -137,14 +137,19 @@ State Machine Function Definitions
 static void UserApp1SM_Idle(void)
 {
   static u8 u8model = 0;
-  static u8 u8volume =0;
+  static u8 u8volume =0; 
+  static u8 u8level = 0;
   static u8 au8volume[] = "0";
+  static u8 au8level[] = "0";
   static u16 u16LCD_delay = 0;
   static u16 u16LED_delay = 0; 
   static u16 u16ADC_current_voltage = 0;
   static bool bled_red = FALSE;
   static bool bdisplay_tap = FALSE;
-     
+  static bool bget_value = FALSE;
+  static bool bfirst = TRUE;
+  
+  
   u16LCD_delay++;
   
   
@@ -154,7 +159,10 @@ static void UserApp1SM_Idle(void)
     /* Be sure to acknowledge the button press */
     ButtonAcknowledge(BUTTON0);
     bled_red = TRUE;
-    LedOff(WHITE);
+    //bget_value = TRUE;
+    //LedOff(WHITE);
+    NumberToAscii( u8level, au8level );
+    u8level++;
     
     AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;  /*CS  低电平有效 */
     AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /*U/D 高电平*/
@@ -172,7 +180,10 @@ static void UserApp1SM_Idle(void)
     /* Be sure to acknowledge the button press */
     ButtonAcknowledge(BUTTON1);
     bled_red = TRUE;
-    LedOff(WHITE);
+    //bget_value = TRUE;
+    //LedOff(WHITE);
+    NumberToAscii( u8level, au8level );
+    u8level--;
     
     AT91C_BASE_PIOA -> PIO_CODR |= PA_16_BLADE_CS;  /*CS  低电平有效 */
     AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /*U/D 低电平*/
@@ -190,6 +201,7 @@ static void UserApp1SM_Idle(void)
     ButtonAcknowledge(BUTTON2);    
     bled_red = TRUE;
     bdisplay_tap = TRUE;
+    bget_value = TRUE;
     LedOn(WHITE);
     AT91C_BASE_PIOB -> PIO_SODR |= PB_04_BLADE_AN1;  /*RE高电平*/
     
@@ -197,9 +209,7 @@ static void UserApp1SM_Idle(void)
     AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /*4053B*/
     AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;   /*4053A*/
     
-    while( !Adc12StartConversion(ADC12_CH2) );
-    u16ADC_current_voltage = AT91C_BASE_ADC12B->ADC12B_CDR[ADC12_CH2];
-    NumberToAscii( u16ADC_current_voltage/40, au8volume );
+    
     
   }
   
@@ -257,10 +267,35 @@ static void UserApp1SM_Idle(void)
     }
   }
   
+  if( u8level >= 10 )
+  {
+    u8level = 10;
+  }
+  else if( u8level <= 0 )
+  {
+    u8level = 0;
+  }
+  
+  /*Get the value*/
+  if( bget_value )
+  {
+    while( !Adc12StartConversion(ADC12_CH2) );
+    u16ADC_current_voltage = AT91C_BASE_ADC12B->ADC12B_CDR[ADC12_CH2];
+    NumberToAscii( u16ADC_current_voltage/40, au8volume );
+    if( bfirst )
+    {
+      u8level = u16ADC_current_voltage/400;
+      bfirst = FALSE;
+    }
+  }
+  
+  
   /*Display volume level and channel number*/
-  if( u16LCD_delay == 300 )
+  if( u16LCD_delay == 500 )
   {
     u16LCD_delay = 0;
+    
+    
     
     LCDCommand(LCD_CLEAR_CMD);
     
@@ -268,13 +303,15 @@ static void UserApp1SM_Idle(void)
     {     
       LCDMessage(LINE1_START_ADDR, "Tap location:");
       LCDMessage(LINE1_START_ADDR+13, au8volume);
+      LCDMessage(LINE1_START_ADDR+15, "   ");
     }
     else  
     {   
-      LCDMessage(LINE1_START_ADDR, "Volume level:   %");
+      LCDMessage(LINE1_START_ADDR+13, au8level);
+      LCDMessage(LINE1_START_ADDR, "Volume level:");
       LCDMessage(LINE2_START_ADDR, "Channel:");
       
-      LCDMessage(LINE1_START_ADDR+13, au8volume);
+      
       
       if( u8model == 0 )
       {
@@ -306,6 +343,8 @@ static void UserApp1SM_Idle(void)
       LedOff(RED);
     }
   }
+  
+  
   
 } /* end UserApp1SM_Idle() */
     

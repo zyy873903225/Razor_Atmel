@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=1620789719
+Checksum=737906672
 [Exceptions]
 StopOnUncaught=_ 0
 StopOnThrow=_ 0
@@ -26,17 +26,14 @@ TraceStallIfFIFOFull=0x00000000
 TracePortSize=0x00000000
 [watch_formats]
 Fmt0={W}3:u16ADC_current_voltage	3	0
-[Disassemble mode]
-mode=0
-[Breakpoints2]
-Count=0
+Fmt1={W}3:u8level	3	0
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
 Category=_ 0
-[Aliases]
-Count=0
-SuppressDialog=0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
 [CallStackLog]
 Enabled=0
 [DriverProfiling]
@@ -45,6 +42,10 @@ Mode=0
 Graph=0
 Symbiont=0
 Exclusions=
-[TermIOLog]
-LoggingEnabled=_ 0
-LogFile=_ ""
+[Disassemble mode]
+mode=0
+[Breakpoints2]
+Count=0
+[Aliases]
+Count=0
+SuppressDialog=0
