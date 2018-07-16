@@ -87,7 +87,17 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+  
+  AT91C_BASE_PIOA -> PIO_SODR |= PA_03_HSMCI_MCCK;   /* STB == 1 */
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_04_HSMCI_MCCDA;  /* INH == 0 */
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_08_SD_CS_MCDA3;  /* D == 0 */
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_07_HSMCI_MCDA2;  /* C == 0 */
+  AT91C_BASE_PIOA -> PIO_SODR |= PA_06_HSMCI_MCDA1;  /* B == 0 */
+  AT91C_BASE_PIOA -> PIO_SODR |= PA_05_HSMCI_MCDA0;  /* A == 0 */
+  
+ // AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* LE == 1 */
+  //AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /* OE == 0 */
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -98,10 +108,10 @@ void UserApp1Initialize(void)
     /* The task isn't properly initialized, so shut it down and don't run */
     UserApp1_StateMachine = UserApp1SM_Error;
   }
-
+  
 } /* end UserApp1Initialize() */
 
-  
+
 /*----------------------------------------------------------------------------------------------------------------------
 Function UserApp1RunActiveState()
 
@@ -111,15 +121,15 @@ All state machines have a TOTAL of 1ms to execute, so on average n state machine
 may take 1ms / n to execute.
 
 Requires:
-  - State machine function pointer points at current state
+- State machine function pointer points at current state
 
 Promises:
-  - Calls the function to pointed by the state machine function pointer
+- Calls the function to pointed by the state machine function pointer
 */
 void UserApp1RunActiveState(void)
 {
   UserApp1_StateMachine();
-
+  
 } /* end UserApp1RunActiveState */
 
 
@@ -127,6 +137,35 @@ void UserApp1RunActiveState(void)
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
+
+
+static void get_data(void)
+{
+  static u8 u8data = 0x00;
+  
+  for(u8 i=0;i<16;i++)
+  {
+    for(u8 j=0;j<8;j--)
+    {
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /* CLK == 0 */
+      
+      if( ( 0x01 & u8data ) == 1 )
+      {
+        AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;  /* SDI == 1 */
+      }
+      else
+      {
+        AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;  /* SDI == 0 */
+      }
+      
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /* CLK == 1 input data*/
+      
+      u8data = u8data >> 1;
+    }
+  }
+  
+  u8data = 0xFF;
+}
 
 /**********************************************************************************************************************
 State Machine Function Definitions
@@ -136,11 +175,48 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static u8 u8data = 0xFF;
+    static u8 u8data = 0xFE;
+
+     AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* LE == 1  transfer the data*/
+     AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* OE == 1 */
+ // for(u8 i=0;i<8;i++)
+ // {
+    //get_data
+    //for(u8 i=0;i<16;i++)
+    //{
+      for(u8 j=0;j<8;j--)
+      {
+        AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /* CLK == 0 */
+        
+        if( ( 0x01 & u8data ) == 1 )
+        {
+          AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;  /* SDI == 1 */
+        }
+        else
+        {
+          AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;  /* SDI == 0 */
+        }
+        
+        AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /* CLK == 1 input data*/
+        
+        u8data = u8data >> 1;
+      }
+   // }
+    //get_data
+    
+    //AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* OE == 1 */
+    
+    //AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* LE == 1 */
+    
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /* LE == 0 store the data*/
+    
+    //AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /* LE == 0 store the data*/
+    
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /* OE == 0  output the data */
   
   
 } /* end UserApp1SM_Idle() */
-    
+
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
