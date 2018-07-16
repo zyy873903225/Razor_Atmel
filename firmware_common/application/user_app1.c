@@ -136,7 +136,9 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+  static u8 u8data = 0xFF;
+  
+  
 } /* end UserApp1SM_Idle() */
     
 

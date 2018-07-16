@@ -466,7 +466,7 @@ counter must be set at 1280. */
 0: No effect
 1: Pin is controlled by PIO
 */
-#define PIOA_PER_INIT (u32)0x84030007
+#define PIOA_PER_INIT (u32)0x8403D9FF
 /* 
     31 [1] PA_31_HEARTBEAT PIO control enabled
     30 [0] PA_30_AN_DEMO PIO control not enabled
@@ -488,22 +488,22 @@ counter must be set at 1280. */
     17 [1] PA_17_BUTTON0 PIO control enabled
     16 [1] PA_16_BLADE_CS PIO control enabled
 
-    15 [0] PA_15_BLADE_SCK PIO control not enabled
-    14 [0] PA_14_BLADE_MOSI PIO control not enabled
+    15 [1] PA_15_BLADE_SCK PIO control not enabled
+    14 [1] PA_14_BLADE_MOSI PIO control not enabled
     13 [0] PA_13_BLADE_MISO PIO control not enabled
-    12 [0] PA_12_BLADE_UPOMI PIO control not enabled
+    12 [1] PA_12_BLADE_UPOMI PIO control not enabled
 
-    11 [0] PA_11_BLADE_UPIMO PIO control not enabled
+    11 [1] PA_11_BLADE_UPIMO PIO control not enabled
     10 [0] PA_10_I2C_SCL PIO control not enabled
     09 [0] PA_09_I2C_SDA PIO control not enabled
-    08 [0] PA_08_SD_CS_MCDA3 PIO control not enabled
+    08 [1] PA_08_SD_CS_MCDA3 PIO control not enabled
 
-    07 [0] PA_07_HSMCI_MCDA2 PIO control not enabled
-    06 [0] PA_06_HSMCI_MCDA1 PIO control not enabled
-    05 [0] PA_05_HSMCI_MCDA0 PIO control not enabled
-    04 [0] PA_04_HSMCI_MCCDA PIO control not enabled
+    07 [1] PA_07_HSMCI_MCDA2 PIO control not enabled
+    06 [1] PA_06_HSMCI_MCDA1 PIO control not enabled
+    05 [1] PA_05_HSMCI_MCDA0 PIO control not enabled
+    04 [1] PA_04_HSMCI_MCCDA PIO control not enabled
 
-    03 [0] PA_03_HSMCI_MCCK PIO control not enabled
+    03 [1] PA_03_HSMCI_MCCK PIO control not enabled
     02 [1] PA_02_SD_DETECT PIO control enabled
     01 [1] PA_01_SD_WP PIO control enabled
     00 [1] PA_00_TP54 PIO control enabled
@@ -557,7 +557,7 @@ counter must be set at 1280. */
 0: No effect
 1: Pin is controlled by corresponding peripheral
 */
-#define PIOA_PDR_INIT (u32)0x7BFCFFF8
+#define PIOA_PDR_INIT (u32)0x7BFC2600
 /* 
     31 [0] PA_31_HEARTBEAT not controlled by peripheral
     30 [1] PA_30_AN_DEMO controlled by peripheral
@@ -648,7 +648,7 @@ Configures the pin as an output or input.
 0: No effect
 1: Enables the output on the I/O line
 */
-#define PIOA_OER_INIT (u32)0xBF55D7F9
+#define PIOA_OER_INIT (u32)0xBF55DFF9
 /* 
     31 [1] PA_31_HEARTBEAT output enabled
     30 [0] PA_30_AN_DEMO input
@@ -675,7 +675,7 @@ Configures the pin as an output or input.
     13 [0] PA_13_BLADE_MISO input
     12 [1] PA_12_BLADE_UPOMI output enabled
 
-    11 [0] PA_11_BLADE_UPIMO  input
+    11 [1] PA_11_BLADE_UPIMO  input
     10 [1] PA_10_I2C_SCL output enabled
     09 [1] PA_09_I2C_SDA output enabled
     08 [1] PA_08_SD_CS_MCDA3 output enabled
@@ -738,7 +738,7 @@ Configures the pin as an output or input.
 0: No effect
 1: Disables the output on the I/O line.
 */
-#define PIOA_ODR_INIT (u32)0x40AA2806
+#define PIOA_ODR_INIT (u32)0x40AA2006
 /* 
     31 [0] PA_31_HEARTBEAT output 
     30 [1] PA_30_AN_DEMO input
@@ -765,7 +765,7 @@ Configures the pin as an output or input.
     13 [1] PA_13_BLADE_MISO input
     12 [0] PA_12_BLADE_UPOMI output 
 
-    11 [1] PA_11_BLADE_UPIMO input
+    11 [0] PA_11_BLADE_UPIMO input
     10 [0] PA_10_I2C_SCL output 
     09 [0] PA_09_I2C_SDA output 
     08 [0] PA_08_SD_CS_MCDA3 output 
