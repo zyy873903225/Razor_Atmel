@@ -56,7 +56,7 @@ State Machine Declarations
 ***********************************************************************************************************************/
 static void UserApp1SM_Idle(void); 
 
-static void get_data(void);    
+static void Line(u8 Line_number);    
 
 static void UserApp1SM_Error(void);         
 
