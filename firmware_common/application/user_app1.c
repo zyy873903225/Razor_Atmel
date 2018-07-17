@@ -87,16 +87,15 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_00_TP54;          /*GND*/   
   
   AT91C_BASE_PIOA -> PIO_SODR |= PA_03_HSMCI_MCCK;   /* STB == 1 */
   AT91C_BASE_PIOA -> PIO_CODR |= PA_04_HSMCI_MCCDA;  /* INH == 0 */
   AT91C_BASE_PIOA -> PIO_CODR |= PA_08_SD_CS_MCDA3;  /* D == 0 */
-  AT91C_BASE_PIOA -> PIO_CODR |= PA_07_HSMCI_MCDA2;  /* C == 0 */
+  AT91C_BASE_PIOA -> PIO_SODR |= PA_07_HSMCI_MCDA2;  /* C == 0 */
   AT91C_BASE_PIOA -> PIO_SODR |= PA_06_HSMCI_MCDA1;  /* B == 0 */
-  AT91C_BASE_PIOA -> PIO_SODR |= PA_05_HSMCI_MCDA0;  /* A == 0 */
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_05_HSMCI_MCDA0;  /* A == 0 */
   
- // AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* LE == 1 */
-  //AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /* OE == 0 */
   
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -175,7 +174,7 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-    static u8 u8data = 0xFE;
+    static u8 u8data = 0xFF;
 
      AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* LE == 1  transfer the data*/
      AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* OE == 1 */
