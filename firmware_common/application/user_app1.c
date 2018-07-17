@@ -174,7 +174,7 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-    static u8 u8data = 0xFF;
+    u8 u8data = 0xFF;
 
      AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* LE == 1  transfer the data*/
      AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* OE == 1 */
@@ -201,18 +201,10 @@ static void UserApp1SM_Idle(void)
         u8data = u8data >> 1;
       }
    // }
-    //get_data
-    
-    //AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* OE == 1 */
-    
-    //AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* LE == 1 */
+    //get_datA
     
     AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /* LE == 0 store the data*/
-    
-    //AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /* LE == 0 store the data*/
-    
     AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /* OE == 0  output the data */
-  
   
 } /* end UserApp1SM_Idle() */
 
