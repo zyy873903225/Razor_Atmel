@@ -89,12 +89,13 @@ void UserApp1Initialize(void)
 {
   AT91C_BASE_PIOA -> PIO_CODR |= PA_00_TP54;          /*GND*/   
   
-  AT91C_BASE_PIOA -> PIO_SODR |= PA_03_HSMCI_MCCK;   /* STB == 1 */
-  AT91C_BASE_PIOA -> PIO_CODR |= PA_04_HSMCI_MCCDA;  /* INH == 0 */
-  AT91C_BASE_PIOA -> PIO_CODR |= PA_08_SD_CS_MCDA3;  /* D == 0 */
-  AT91C_BASE_PIOA -> PIO_SODR |= PA_07_HSMCI_MCDA2;  /* C == 0 */
-  AT91C_BASE_PIOA -> PIO_SODR |= PA_06_HSMCI_MCDA1;  /* B == 0 */
-  AT91C_BASE_PIOA -> PIO_CODR |= PA_05_HSMCI_MCDA0;  /* A == 0 */
+  AT91C_BASE_PIOA -> PIO_SODR |= PA_05_HSMCI_MCDA0;   /* STB == 1 */
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_08_SD_CS_MCDA3;  /* INH == 0 */
+  
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_04_HSMCI_MCCDA;  /* D == 0 */
+  AT91C_BASE_PIOA -> PIO_SODR |= PA_06_HSMCI_MCDA1;  /* C == 0 */
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_07_HSMCI_MCDA2;  /* B == 0 */
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_03_HSMCI_MCCK;  /* A == 0 */
   
   
   /* If good initialization, set state to Idle */
@@ -146,18 +147,18 @@ static void get_data(void)
   {
     for(u8 j=0;j<8;j--)
     {
-      AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /* CLK == 0 */
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;  /* CLK == 0 */
       
       if( ( 0x01 & u8data ) == 1 )
       {
-        AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;  /* SDI == 1 */
+        AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /* SDI == 1 */
       }
       else
       {
-        AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;  /* SDI == 0 */
+        AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /* SDI == 0 */
       }
       
-      AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /* CLK == 1 input data*/
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;  /* CLK == 1 input data*/
       
       u8data = u8data >> 1;
     }
@@ -174,10 +175,10 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-    u8 u8data = 0xFF;
+    u8 u8data = 0x01;
 
-     AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* LE == 1  transfer the data*/
-     AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* OE == 1 */
+     AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* LE == 1  transfer the data*/
+     AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* OE == 1 */
  // for(u8 i=0;i<8;i++)
  // {
     //get_data
@@ -185,26 +186,26 @@ static void UserApp1SM_Idle(void)
     //{
       for(u8 j=0;j<8;j--)
       {
-        AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /* CLK == 0 */
+        AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;  /* CLK == 0 */
         
         if( ( 0x01 & u8data ) == 1 )
         {
-          AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;  /* SDI == 1 */
+          AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /* SDI == 1 */
         }
         else
         {
-          AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;  /* SDI == 0 */
+          AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /* SDI == 0 */
         }
         
-        AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /* CLK == 1 input data*/
+        AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;  /* CLK == 1 input data*/
         
         u8data = u8data >> 1;
       }
    // }
     //get_datA
     
-    AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /* LE == 0 store the data*/
-    AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /* OE == 0  output the data */
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /* LE == 0 store the data*/
+    AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /* OE == 0  output the data */
   
 } /* end UserApp1SM_Idle() */
 
