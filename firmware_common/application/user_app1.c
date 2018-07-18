@@ -159,6 +159,7 @@ void UserApp1RunActiveState(void)
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
+
 static void Get_Chinese(u8 u8display[16][10],u8 u8Chinese1[16][2],u8 u8Chinese2[16][2],u8 u8Chinese3[16][2],u8 u8Chinese4[16][2],u8 u8Chinese5[16][2])
 {
   for(u8 i=0;i<16;i++)
@@ -199,9 +200,29 @@ static void Get_Chinese(u8 u8display[16][10],u8 u8Chinese1[16][2],u8 u8Chinese2[
       }
     }
   }
-}
+}/* end Get_Chinese() */
 
-static void Line(u8 Line_number)
+static void Combine_two_array(u8 u8combine[16][20],u8 u8array[16][10])
+{ 
+  for(u8 i=0;i<16;i++)
+  {
+    for(u8 j=0;j<20;j++)
+    {
+      if( j < 10 )
+      {
+        u8combine[i][j] = 0;
+      }
+      else
+      {
+        u8combine[i][j] = u8array[i][j-10];
+      }
+    }
+  }
+
+}/* end Combine_two_array() */
+
+
+static void Choose_Line(u8 Line_number)
 {
   if( ( 0x01 & Line_number ) == 0x01 )
   {
@@ -212,7 +233,7 @@ static void Line(u8 Line_number)
     AT91C_BASE_PIOA -> PIO_CODR |= PA_03_HSMCI_MCCK;  /* A == 0 */
   }
   
-   if( ( 0x02 & Line_number ) == 0x02 )
+  if( ( 0x02 & Line_number ) == 0x02 )
   {
     AT91C_BASE_PIOA -> PIO_SODR |= PA_07_HSMCI_MCDA2;  /* B == 1 */
   }
@@ -221,7 +242,7 @@ static void Line(u8 Line_number)
     AT91C_BASE_PIOA -> PIO_CODR |= PA_07_HSMCI_MCDA2;  /* B == 0 */
   }
   
-   if( ( 0x04 & Line_number ) == 0x04 )
+  if( ( 0x04 & Line_number ) == 0x04 )
   {
     AT91C_BASE_PIOA -> PIO_SODR |= PA_06_HSMCI_MCDA1;  /* C == 1 */
   }
@@ -230,7 +251,7 @@ static void Line(u8 Line_number)
     AT91C_BASE_PIOA -> PIO_CODR |= PA_06_HSMCI_MCDA1;  /* C == 0 */
   }
   
-   if( ( 0x08 & Line_number ) == 0x08 )
+  if( ( 0x08 & Line_number ) == 0x08 )
   {
     AT91C_BASE_PIOA -> PIO_SODR |= PA_04_HSMCI_MCCDA;  /* D == 1 */
   }
@@ -238,7 +259,103 @@ static void Line(u8 Line_number)
   {
     AT91C_BASE_PIOA -> PIO_CODR |= PA_04_HSMCI_MCCDA;  /* D == 0 */
   }
-}
+}/* end Choose_Line() */
+
+
+static void Display(u8 u8display[16][10])
+{
+  static u8 Line_number = 0;
+  static u8 u8data = 0;
+  
+  /*choose the line*/
+  Choose_Line(Line_number);
+  
+  AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* LE == 1  transfer the data*/
+  AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* OE == 1 */
+  
+  for(u8 i=0;i<10;i++)
+  {
+    u8data = u8display[Line_number][9-i];
+    
+    for(u8 j=0;j<8;j++)
+    {
+      
+      if( ( 0x80 & u8data ) == 0x80 )
+      {
+        AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /* SDI == 1 */
+      }
+      else
+      {
+        AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /* SDI == 0 */
+      }
+      
+      AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;  /* CLK == 0 */
+      AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;  /* CLK == 1 input data*/
+      
+      u8data = u8data << 1;
+    }
+    
+  }
+  
+  //AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /* LE == 0 store the data*/
+  AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /* OE == 0  output the data */
+  
+  Line_number++;
+  
+  if( Line_number > MAX_LINE_NUMBER )
+  {
+    Line_number = 0;
+  }
+}/* end Display() */
+
+
+static void Cycle_Display(u8 u8display[16][10])
+{
+  static u8 u8delay = 100;
+  static u8 u8index = 9;
+  static u8 u8data[16][10]; 
+  static bool btransfer = TRUE;
+  
+  if( btransfer )
+  {     
+    for(u8 i=0;i<16;i++)
+    { 
+      for(u8 j=0;j<10;j++)
+      {
+        u8data[i][j] = u8display[i][j];
+      }
+    }
+    
+    btransfer = FALSE;
+  }
+  
+  u8delay--; 
+  
+  /*delay 100ms*/
+  if( u8delay == 0)
+  {
+    Display(u8data);
+    
+    for(u8 i=0;i<16;i++)
+    {
+      for(u8 j=0;j<u8index;j++)
+      {
+        u8data[i][j] =  u8data[i][j+1];
+      }   
+      u8data[i][u8index]=0x00;
+    } 
+    
+    u8delay = 100;
+    u8index--;
+    if( u8index == 0 )
+    {
+      u8index = 9;
+      btransfer = TRUE;
+    }    
+  }
+  
+}/* end Cycle_Display() */
+
 
 /**********************************************************************************************************************
 State Machine Function Definitions
@@ -247,68 +364,69 @@ State Machine Function Definitions
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
-{
-  static u8 Line_number = 0;
-  static u8 u8data = 0;
-   u8 au8data[16][10];
-  //u8 au8data[2][10] = {{0xFF,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09},{0x09,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0xFF}};
-   /*u8 au8data[16][10] = {0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x48,0x7C,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x28,0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0xFE,0x24,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x10,0x24,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x10,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x10,0x24,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0xFF,0x25,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x10,0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x10,0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x28,0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x48,0x2C,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x84,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x82,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x01,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};*/
-   
+{ 
+  u8 au8data[16][10];
+  u8 au8combinedata[16][20];
+  
+  static u8 a = 0;
+  static u8 u8delay = 40;
+  static u8 u8index = 16;
+  static u8 u8data[16][10]; 
+  static bool btransfer = TRUE;
+  
+  
+  
+   /*give the chinese displayed*/
    Get_Chinese(au8data,yang,yi,aixin,bi,xin);
-    Line(Line_number);
-  
-     AT91C_BASE_PIOA -> PIO_SODR |= PA_11_BLADE_UPIMO;  /* LE == 1  transfer the data*/
-     AT91C_BASE_PIOA -> PIO_SODR |= PA_12_BLADE_UPOMI;  /* OE == 1 */
- 
-    for(u8 i=0;i<10;i++)
-    {
-      u8data = au8data[Line_number][9-i];
-      
-      for(u8 j=0;j<8;j++)
-      {
-        
-        if( ( 0x80 & u8data ) == 0x80 )
-        {
-          AT91C_BASE_PIOA -> PIO_SODR |= PA_15_BLADE_SCK;  /* SDI == 1 */
-        }
-        else
-        {
-          AT91C_BASE_PIOA -> PIO_CODR |= PA_15_BLADE_SCK;  /* SDI == 0 */
-        }
-        
-        AT91C_BASE_PIOA -> PIO_CODR |= PA_14_BLADE_MOSI;  /* CLK == 0 */
-        AT91C_BASE_PIOA -> PIO_SODR |= PA_14_BLADE_MOSI;  /* CLK == 1 input data*/
-        
-        u8data = u8data << 1;
-      }
    
+   Combine_two_array(au8combinedata,au8data);
+   
+   if( btransfer )
+     {     
+       for(u8 i=0;i<16;i++)
+       { 
+         for(u8 j=a;j<a+10;j++)
+         {
+           u8data[i][j] = au8combinedata[i][j];
+         }
+       }
+       a = a+1;
+       if( a == 11 )
+       {
+        a=0;
+       }
+       btransfer = FALSE;
+     }
+   
+    /*display the chinese*/
+   Display(u8data);
+   
+   u8delay--; 
+   
+    if(u8delay == 0)
+    { 
+     for(u8 i=0;i<16;i++)
+     {
+       for(u8 j=0;j<10;j++)
+       {
+         u8data[i][j] = u8data[i][j] >> 1;
+         
+         if( ( u8data[i][j+1] & 0x01 == 0x01 ) && j!=9 )
+         {
+           u8data[i][j] = u8data[i][j] | 0x80;
+         }
+         
+       }   
+     }
+     u8delay = 40;
+     u8index--;
+     if( u8index == 0 )
+     {
+       u8index = 16;
+       btransfer = TRUE;
+     }    
     }
-    
-    //AT91C_BASE_PIOA -> PIO_CODR |= PA_11_BLADE_UPIMO;  /* LE == 0 store the data*/
-    AT91C_BASE_PIOA -> PIO_CODR |= PA_12_BLADE_UPOMI;  /* OE == 0  output the data */
   
-    Line_number++;
-    
-    if( Line_number > MAX_LINE_NUMBER )
-    {
-      Line_number = 0;
-    }
-
     
 } /* end UserApp1SM_Idle() */
 
