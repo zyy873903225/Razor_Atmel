@@ -57,13 +57,13 @@ State Machine Declarations
 ***********************************************************************************************************************/
 static void UserApp1SM_Idle(void); 
 
-static void Get_Chinese(u8 u8display[16][10],u8 u8Chinese1[16][2],u8 u8Chinese2[16][2],u8 u8Chinese3[16][2],u8 u8Chinese4[16][2],u8 u8Chinese5[16][2]);
+static void Get_Chinese(u8 u8display[16][12],u8 u8Chinese1[16][2],u8 u8Chinese2[16][2],u8 u8Chinese3[16][2],u8 u8Chinese4[16][2],u8 u8Chinese5[16][2]);
 
 static void Combine_two_array(u8 u8combine[16][20],u8 u8array[16][10]);
 
 static void Choose_Line(u8 Line_number);    
 
-static void Display(u8 u8display[16][10]);
+static void Display(u8 u8display[16][12]);
 
 static void Cycle_Display(u8 u8display[16][10]);
 

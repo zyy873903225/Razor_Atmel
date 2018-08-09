@@ -160,7 +160,7 @@ void UserApp1RunActiveState(void)
 /*--------------------------------------------------------------------------------------------------------------------*/
 
 
-static void Get_Chinese(u8 u8display[16][10],u8 u8Chinese1[16][2],u8 u8Chinese2[16][2],u8 u8Chinese3[16][2],u8 u8Chinese4[16][2],u8 u8Chinese5[16][2])
+static void Get_Chinese(u8 u8display[16][12],u8 u8Chinese1[16][2],u8 u8Chinese2[16][2],u8 u8Chinese3[16][2],u8 u8Chinese4[16][2],u8 u8Chinese5[16][2])
 {
   for(u8 i=0;i<16;i++)
   {
@@ -262,7 +262,7 @@ static void Choose_Line(u8 Line_number)
 }/* end Choose_Line() */
 
 
-static void Display(u8 u8display[16][10])
+static void Display(u8 u8display[16][12])
 {
   static u8 Line_number = 0;
   static u8 u8data = 0;
@@ -336,7 +336,7 @@ static void Cycle_Display(u8 u8display[16][10])
   }
   
   /*display the chinese*/
-  Display(u8data);
+  //Display(u8data);
   
   u8delay--; 
   
@@ -382,13 +382,97 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 { 
-  u8 au8data[16][10];
+  static u8 au8data[16][12];
+  
   
    /*give the chinese displayed*/
    Get_Chinese(au8data,yang,yi,aixin,bi,xin);
    
    /*cycle display*/
-   Cycle_Display(au8data);
+   //Cycle_Display(au8data);
+  
+  static u8 k = 0;
+  static u8 u8delay = 40;
+  static u8 u8index = 16;
+  static u8 u8spacecount = 0;
+  static u8 u8data[16][12]; 
+  static bool btransfer = TRUE;
+  static bool bspace = FALSE;
+  
+  if( btransfer )
+  { 
+    if( k == 0 )
+    {
+      for(u8 i=0;i<16;i++)
+      {
+        for(u8 j=0;j<12;j++)
+        {
+            u8data[i][j] = 0;        
+        }
+      }
+    }     
+      
+    for(u8 i=0;i<16;i++)
+    {    
+      if( k < 10 )
+      {
+        u8data[i][10] = au8data[i][k];
+        u8data[i][11] = au8data[i][k+1];    
+        bspace = FALSE;
+      }
+      else
+      {
+       u8data[i][10] = 0;
+       u8data[i][11] = 0;      
+       bspace = TRUE;
+      }
+    }
+    
+    if(bspace)
+    {
+      u8spacecount++;
+    }
+    
+    k=k+2;    
+    
+    if( u8spacecount == 5 )
+    {
+      k = 0;
+      u8spacecount = 0;
+    }
+    
+    btransfer = FALSE;
+  }
+  
+  /*display the chinese*/
+  Display(u8data);
+  
+  u8delay--; 
+  
+  if(u8delay == 0)
+  { 
+    for(u8 i=0;i<16;i++)
+    {
+      for(u8 j=0;j<12;j++)
+      { 
+        u8data[i][j] = u8data[i][j] >> 1;
+        
+         if( ( u8data[i][j+1] & 0x01 == 0x01 ) )
+        {
+          u8data[i][j] = u8data[i][j] | 0x80;
+        }
+      }   
+    }
+    u8delay = 40;
+    u8index--;
+    
+    if( u8index == 0 )
+    {   
+      u8index = 16;
+      btransfer = TRUE;      
+    }    
+  }
+  
   
 } /* end UserApp1SM_Idle() */
 
